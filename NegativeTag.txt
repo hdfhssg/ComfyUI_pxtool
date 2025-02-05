@@ -1,0 +1,91 @@
+lowres
+worst quality
+low quality
+normal quality
+blurry
+pixelated
+grainy
+bad anatomy
+bad hands
+missing fingers
+extra digit
+fewer digits
+cropped
+extra limbs
+disfigured
+deformed
+((text))
+(watermark)
+error
+ugly
+distorted
+out of focus
+noisy
+dirty
+messy
+poorly drawn face
+poorly drawn eyes
+unattractive face
+asymmetric face
+strange expression
+missing body parts
+unrealistic landscape
+ugly scenery
+cluttered scene
+dull colors
+overly saturated
+washed out
+lack of artistic style
+uninspired design
+generic art
+poorly executed
+not creative
+worst aesthetic
+worst quality
+low quality
+bad quality
+lowres
+scan artifacts
+jpeg artifacts
+lossy-lossless
+ai-generated
+abstract
+official art
+old
+4koma
+multiple views
+reference sheet
+dakimakura (medium)
+turnaround
+comic
+greyscale
+monochrome
+sketch
+unfinished
+furry
+anthro
+feral
+semi-anthro
+watermark
+logo
+signature
+text
+artist name
+dated
+username
+web address
+bad hands
+bad feet
+extra digits
+fewer digits
+extra arms
+extra faces
+multiple heads
+missing limb
+amputee
+severed limb
+mutated hands
+distorted anatomy
+nsfw
+explicit
+censored
