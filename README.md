@@ -12,6 +12,7 @@
 - Packaged the drawing environment of the 50 series graphics card such as 5090, 5090D, 5080, etc. required by table-Diffusion-Webui with torch2.6+cuda12.8, [Demo link](https://b23.tv/xKnhB18), [Baidu Netdisk](https://pan.baidu.com/s/14k47qDeLqFX2d9cznQaPqg?pwd=pxhd), and it has been tested on 5090D.
 - Someone has already packaged the environment required by the 50 series graphics card in comfyui, see [here](https://github.com/comfyanonymous/ComfyUI/discussions/6643)
 
+
 **中文**
 这是我个人使用的插件节点，在原有项目的基础上修改并扩展了部分功能。主要实现了以下内容：
 - 在 ComfyUI 中重新复现 [Stable-Diffusion-Webui-Civitai-Helper](https://github.com/zixaphir/Stable-Diffusion-Webui-Civitai-Helper) 项目中的部分功能
