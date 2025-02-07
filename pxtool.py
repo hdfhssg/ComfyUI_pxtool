@@ -375,7 +375,7 @@ def random_tag_csv(
     keywords = ["1girl", "2girls", "3girls", "4girls", "5girls","6+girls", "multiple_girls","1boy", "2boys", "3boys", "4boys", "5boys","6+boys", "multiple_boys","solo", "duo", "trio", "group"]
 
     for _ in range(random.randint(min_artists, max_artists)):
-        while (artist := random.choices(artists, weights=frequencies)[0]) in (chose_artists or keywords):
+        while (artist := random.choices(artists, weights=frequencies)[0]) in ([a for a in chose_artists.split(",") if a] + keywords):
             pass
         chose_artists = add_artist(chose_artists,artist_pref, random_weight, artist, min_weights, max_weights, lower_weight, higher_weight, medium)
 
