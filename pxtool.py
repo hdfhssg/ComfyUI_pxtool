@@ -36,6 +36,7 @@ def remove_duplicate_tags(tags_tuple):
     
     return tuple(process_tags(tags_str) for tags_str in tags_tuple)
 
+
 def add_artist(chose_artists,artist_pref, random_weight, artist, min_weights=1, max_weights=5, 
                             lower_weight=False, higher_weight=False, medium=0.5):
     if artist_pref:
@@ -371,8 +372,10 @@ def random_tag_csv(
     artists = list(artists_dict.keys())
     frequencies = list(artists_dict.values())
     chose_artists = ""
+    keywords = ["1girl", "2girls", "3girls", "4girls", "5girls","6+girls", "multiple_girls","1boy", "2boys", "3boys", "4boys", "5boys","6+boys", "multiple_boys","solo", "duo", "trio", "group"]
+
     for _ in range(random.randint(min_artists, max_artists)):
-        while (artist := random.choices(artists, weights=frequencies)[0]) in chose_artists:
+        while (artist := random.choices(artists, weights=frequencies)[0]) in (chose_artists or keywords):
             pass
         chose_artists = add_artist(chose_artists,artist_pref, random_weight, artist, min_weights, max_weights, lower_weight, higher_weight, medium)
 
@@ -392,6 +395,7 @@ class RandomTag:
                 "seed": (
                     "INT", {"default": 43, "min": 0, "max": 0xffffffffffffffff}
                 ),
+                "keywords" : (["None","1girl", "2girls", "3girls", "4girls", "5girls","6+girls", "multiple_girls","1boy", "2boys", "3boys", "4boys", "5boys","6+boys", "multiple_boys","solo", "duo", "trio", "group"],),
                 "prefix": ("BOOLEAN", {"default": True}),
                 "position": (["最后面", "最前面"],),
                 "random_weight": ("BOOLEAN", {"default": True}),
@@ -412,7 +416,10 @@ class RandomTag:
     CATEGORY = "ComfyUI-pxtool"
 
     def random_tag(self, prompt, file, max_count, seed, position, random_weight, year_2022, year_2023, artist_pref, 
-                   lower_weight, higher_weight, max_tag, max_weights, min_tag, min_weights, prefix):
+                   lower_weight, higher_weight, max_tag, max_weights, min_tag, min_weights, prefix, keywords):
+        if keywords != "None":
+            prompt = prompt.replace("1girl,", "")
+            prompt = keywords + "," + prompt
         if prefix:
             prompt = "masterpiece, best quality, newest, absurdres, highres, safe," + prompt
         tag =random_tag_csv(prompt, file, max_count, position, random_weight, year_2022, year_2023, artist_pref, lower_weight, higher_weight, max_tag, max_weights, min_tag, min_weights, seed)
@@ -425,10 +432,10 @@ class QualityTag:
         return {
             "required":{
                 "prompt": ("STRING", {"default": "1girl,"}),
-                "quality": (["","masterpiece", "best quality", "high quality", "good quality", "normal quality", "low quality", "bad quality", "worst quality"],{"default":"masterpiece"}),
-                "safe": (["", "general", "sensitive", "nsfw", "explicit"],),
-                "aesthetic": (["","very awa", "worst aesthetic"],),
-                "time": (["", "newest", "recent", "mid", "early", "old"],),
+                "quality": (["None","masterpiece", "best quality", "high quality", "good quality", "normal quality", "low quality", "bad quality", "worst quality"],{"default":"masterpiece"}),
+                "safe": (["None","general", "sensitive", "nsfw", "explicit"],),
+                "aesthetic": (["None","very awa", "worst aesthetic"],),
+                "time": (["None","newest", "recent", "mid", "early", "old"],),
                 "position": (["最前面", "最后面"],),
             }
         }
@@ -439,13 +446,13 @@ class QualityTag:
 
     def quality_tag(self, prompt,quality, safe, aesthetic, time, position):
         quality_tags = ""
-        if aesthetic != "":
+        if aesthetic != "None":
             quality_tags += f"{aesthetic},"
-        if safe != "":
+        if safe != "None":
             quality_tags += f"{safe},"
-        if time != "":
+        if time != "None":
             quality_tags +=f"{time},"
-        if quality != "":
+        if quality != "None":
             quality_tags += f"{quality},"
         if position == "最后面":
             tags = (f"{format_str(str(prompt))}{quality_tags}"),format_str(str(quality_tags))
@@ -471,6 +478,7 @@ class NegativeTag:
             "seed": (
                     "INT", {"default": 43, "min": 0, "max": 0xffffffffffffffff}
                 ),
+            "keywords" : (["None","1girl", "2girls", "3girls", "4girls", "5girls","6+girls", "multiple_girls","1boy", "2boys", "3boys", "4boys", "5boys","6+boys", "multiple_boys","solo", "duo", "trio", "group"],),
             "random_weight": ("BOOLEAN", {"default": True}),
             "old": ("BOOLEAN", {"default": True}),
             "lower_weight": ("BOOLEAN", {"default": False}),
@@ -486,9 +494,11 @@ class NegativeTag:
     RETURN_TYPES = ("STRING",)
     CATEGORY = "ComfyUI-pxtool"
 
-    def negative_tag(self, prompt, seed, random_weight, old, lower_weight, higher_weight, max_tag, max_weights, min_tag, min_weights):
+    def negative_tag(self, prompt, seed, random_weight, old, lower_weight, higher_weight, max_tag, max_weights, min_tag, min_weights,keywords):
         random.seed(seed)
         medium = 0.5
+        if keywords != "None":
+            prompt = keywords + "," + prompt
         artists_dict: dict = read_txt(os.path.join(root_dir, "NegativeTag.txt"))
         chose_artists = ""
         for _ in range(random.randint(min_tag, max_tag)):
