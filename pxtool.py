@@ -395,7 +395,10 @@ class RandomTag:
                 "seed": (
                     "INT", {"default": 43, "min": 0, "max": 0xffffffffffffffff}
                 ),
-                "keywords" : (["None","1girl", "2girls", "3girls", "4girls", "5girls","6+girls", "multiple_girls","1boy", "2boys", "3boys", "4boys", "5boys","6+boys", "multiple_boys","solo", "duo", "trio", "group"],),
+                "girl_tag" : (["None","1girl", "2girls", "3girls", "4girls", "5girls","6+girls", "multiple_girls"],),
+                           
+                "boy_tag": ([ "None","1boy", "2boys", "3boys", "4boys", "5boys","6+boys", "multiple_boys"],),
+                "multiple_tag": (["None","solo", "duo", "trio", "group"],),
                 "prefix": ("BOOLEAN", {"default": True}),
                 "position": (["最后面", "最前面"],),
                 "random_weight": ("BOOLEAN", {"default": True}),
@@ -416,10 +419,16 @@ class RandomTag:
     CATEGORY = "ComfyUI-pxtool"
 
     def random_tag(self, prompt, file, max_count, seed, position, random_weight, year_2022, year_2023, artist_pref, 
-                   lower_weight, higher_weight, max_tag, max_weights, min_tag, min_weights, prefix, keywords):
-        if keywords != "None":
+                   lower_weight, higher_weight, max_tag, max_weights, min_tag, min_weights, prefix, girl_tag,boy_tag,multiple_tag):
+        if multiple_tag != "None":
+            prompt = prompt.replace("solo,", "")
+            prompt = multiple_tag + "," + prompt
+        if boy_tag != "None":
+            prompt = prompt.replace("1boy,", "")
+            prompt = boy_tag + "," + prompt
+        if girl_tag != "None":
             prompt = prompt.replace("1girl,", "")
-            prompt = keywords + "," + prompt
+            prompt = girl_tag + "," + prompt
         if prefix:
             prompt = "masterpiece, best quality, newest, absurdres, highres, safe," + prompt
         tag =random_tag_csv(prompt, file, max_count, position, random_weight, year_2022, year_2023, artist_pref, lower_weight, higher_weight, max_tag, max_weights, min_tag, min_weights, seed)
