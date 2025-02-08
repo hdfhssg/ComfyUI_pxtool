@@ -372,7 +372,7 @@ def random_tag_csv(
     artists = list(artists_dict.keys())
     frequencies = list(artists_dict.values())
     chose_artists = ""
-    keywords = ["1girl", "2girls", "3girls", "4girls", "5girls","6+girls","1other", "multiple_girls","1boy", "2boys", "3boys", "4boys", "5boys","6+boys", "multiple_boys","solo", "duo", "trio", "group"]
+    keywords = ["1girl", "2girls", "3girls", "4girls", "5girls","6+girls", "sisters", "1other", "multiple_girls","1boy", "2boys", "3boys", "4boys", "5boys","6+boys", "multiple_boys","solo", "duo", "trio", "group"]
 
     for _ in range(random.randint(min_artists, max_artists)):
         while (artist := random.choices(artists, weights=frequencies)[0]) in ([a for a in chose_artists.split(",") if a] + keywords):
@@ -395,7 +395,7 @@ class RandomTag:
                 "seed": (
                     "INT", {"default": 43, "min": 0, "max": 0xffffffffffffffff}
                 ),
-                "girl_tag" : (["None","1girl", "2girls", "3girls", "4girls", "5girls","6+girls","1other", "multiple_girls"],),
+                "girl_tag" : (["None","1girl", "2girls", "3girls", "4girls", "5girls","6+girls", "sisters", "1other", "multiple_girls"],),
                 "boy_tag": ([ "None","1boy", "2boys", "3boys", "4boys", "5boys","6+boys", "multiple_boys"],),
                 "multiple_tag": (["None","solo", "duo", "trio", "group"],),
                 "prefix": ("BOOLEAN", {"default": True}),
