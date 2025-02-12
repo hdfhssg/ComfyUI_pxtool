@@ -165,7 +165,7 @@ class CheckpointLoaderPX:
                        "The VAE model used for encoding and decoding images to and from latent space.")
     FUNCTION = "load_checkpoint"
 
-    CATEGORY = "loaders"
+    CATEGORY = "ComfyUI-pxtool"
     DESCRIPTION = "Loads a diffusion model checkpoint, diffusion models are used to denoise latents."
 
     def load_checkpoint(self, ckpt_name, unet_dtype, clip_dtype, vae_dtype):
