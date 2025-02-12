@@ -37,11 +37,12 @@ This is a custom plugin node for ComfyUI that modifies and extends some features
 - **Prompt Word Generation:** Implemented a feature to randomly generate related prompt words by referencing the [noob-wiki dataset](https://huggingface.co/datasets/Laxhar/noob-wiki/tree/main), randomly adding artist strings, and randomly adding weights to enhance the user experience
 - **Checkpoint Loader:** Implemented a Checkpoint loader that can perform fp8 pruning, allowing users with small NVIDIA GPUs (around 6GB of VRAM or even smaller 4GB VRAM) to run the SDXL model without running out of memory errors. Although the accuracy is reduced and the image quality is lowered, it is acceptable in some scenarios.
 
-| ![fp8_e5m2+fp8_e5m2](img/fp8_e5m2+fp8_e5m2_00001_.png) | ![fp8_e5m2+fp8_e4m3fn](img/fp8_e5m2+fp8_e4m3fn_00001_.png) | ![img/fp8_e4m3fn+fp16](fp8_e4m3fn+fp16_00001_.png) |
+| :fp8_e5m2+fp8_e5m2:![fp8_e5m2+fp8_e5m2](img/fp8_e5m2+fp8_e5m2_00001_.png) | :fp8_e5m2+fp8_e4m3fn:![fp8_e5m2+fp8_e4m3fn](img/fp8_e5m2+fp8_e4m3fn_00001_.png) | !:fp8_e4m3fn+fp16:[img/fp8_e4m3fn+fp16](fp8_e4m3fn+fp16_00001_.png) |
 |----------------------|----------------------|----------------------|
-| ![fp8_e4m3fn+fp8_e5m2](img/fp8_e4m3fn+fp8_e5m2_00001_.png) | ![fp8_e4m3fn+fp8_e4m3fn](img/fp8_e4m3fn+fp8_e4m3fn_00001_.png) | ![fp8_e4m3fn+fp16](img/fp8_e4m3fn+fp16_00001_.png) |
-| ![fp16+fp8_e5m2](img/fp16+fp8_e5m2_00001_.png) | ![fp16+fp8_e4m3fn](img/fp16+fp8_e4m3fn_00001_.png) | ![fp16+fp16](img/fp16+fp16_00001_.png) |
-
+| :fp8_e4m3fn+fp8_e5m2:![fp8_e4m3fn+fp8_e5m2](img/fp8_e4m3fn+fp8_e5m2_00001_.png) | :fp8_e4m3fn+fp8_e4m3fn:![fp8_e4m3fn+fp8_e4m3fn](img/fp8_e4m3fn+fp8_e4m3fn_00001_.png) | !:fp8_e4m3fn+fp16:[img/fp8_e4m3fn+fp16](fp8_e4m3fn+fp16_00001_.png) |
+| ---------------------- | ---------------------- | ---------------------- |
+| :fp16+fp8_e5m2:![fp16+fp8_e5m2](img/fp16+fp8_e5m2_00001_.png) | :fp16+fp8_e4m3fn:![fp16+fp8_e4m3fn](img/fp16+fp8_e4m3fn_00001_.png) | :fp16+fp16:![fp16+fp16](img/fp16+fp16_00001_.png) |
+| ---------------------- | ---------------------- | ---------------------- |
 ## 安装 / Installation
 
 **中文**
