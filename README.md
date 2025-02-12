@@ -43,6 +43,17 @@ This is a custom plugin node for ComfyUI that modifies and extends some features
 | ---------------------- | ---------------------- | ---------------------- |
 | :fp16+fp8_e5m2:![fp16+fp8_e5m2](img/fp16+fp8_e5m2_00001_.png) | :fp16+fp8_e4m3fn:![fp16+fp8_e4m3fn](img/fp16+fp8_e4m3fn_00001_.png) | :fp16+fp16:![fp16+fp16](img/fp16+fp16_00001_.png) |
 | ---------------------- | ---------------------- | ---------------------- |
+<img src="img/fp8_e5m2+fp8_e5m2_00001_.png" width="33.33%" alt="fp8_e5m2+fp8_e5m2">
+<img src="img/fp8_e5m2+fp8_e4m3fn_00001_.png" width="33.33%" alt="fp8_e5m2+fp8_e4m3fn">
+<img src="img/fp8_e5m2+fp16_00001_.png" width="33.33%" alt="fp8_e5m2+fp16">
+<img src="img/fp8_e4m3fn+fp8_e5m2_00001_.png" width="33.33%" alt="fp8_e4m3fn+fp8_e5m2">
+<img src="img/fp8_e4m3fn+fp8_e4m3fn_00001_.png" width="33.33%" alt="fp8_e4m3fn+fp8_e4m3fn">
+<img src="img/fp8_e4m3fn+fp16_00001_.png" width="33.33%" alt="fp8_e4m3fn+fp16">
+<img src="img/fp16+fp8_e5m2_00001_.png" width="33.33%" alt="fp16+fp8_e5m2">
+<img src="img/fp16+fp8_e4m3fn_00001_.png" width="33.33%" alt="fp16+fp8_e4m3fn">
+<img src="img/fp16+fp16_00001_.png" width="33.33%" alt="fp16+fp16">
+
+
 ## 安装 / Installation
 
 **中文**
