@@ -68,8 +68,8 @@ This is a custom plugin node for ComfyUI that modifies and extends some features
   </tr>
   <tr>
     <td align="center">
-      <div>fp16+fp8_e4m3fn</div>
-      <img src="img/fp16+fp8_e4m3fn_00001_.png" width="250" alt="fp16+fp8_e4m3fn">
+      <div>fp16+fp8_e5m2</div>
+      <img src="img/fp16+fp8_e5m2_00001_.png" width="250" alt="fp16+fp8_e5m2">
     </td>
     <td align="center">
       <div>fp16+fp8_e4m3fn</div>
