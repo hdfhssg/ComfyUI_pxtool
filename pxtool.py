@@ -20,27 +20,64 @@ def format_str(string):
     string = re.sub(r'(?<!\\)\)', r'\\)', string)
     return string.strip().replace("_", " ")
 
+def format_tag_str(string):
+    # Step 1: 转义所有未被转义的原始括号
+    string = re.sub(r'(?<!\\)\(', r'\\(', string)
+    string = re.sub(r'(?<!\\)\)', r'\\)', string)
+    # Step 2: 处理多层嵌套转义括号（任意层数）
+    # 匹配连续两个及以上的转义括号（如 \\(\\、\\\\)\\\\) 等）
+    string = re.sub(
+        r'((\\[()]){2,})',  # 匹配两个及以上连续的转义括号
+        lambda m: m.group(0)[1] * (len(m.group(0)) // 2),  # Fixed lambda function
+        string  # 添加目标字符串参数
+    )
+    # Step 3: 处理包含冒号的括号（恢复原始形式）
+    string = re.sub(r'\\\(([^:]*:[^)]*)\\\)', r'(\1)', string)
+    string = re.sub(r'\\\)([^:]*:[^)]*)\\\(', r')\1(', string)
+
+    # Step 4: 替换下划线为空格并去除首尾空格
+    return string.strip().replace("_", " ")
+
 def remove_duplicate_tags(tags_tuple):
+    seen = set()  # 全局基名记录集合
+
+    def get_base(tag):
+        # 清理所有非字母数字、下划线、空格和冒号的字符
+        trimmed = re.sub(r'[^\w\s:]', '', tag)
+        # 去除开头和结尾的非字母数字及下划线
+        trimmed = re.sub(r'^[^a-zA-Z0-9_]*', '', trimmed)
+        trimmed = re.sub(r'[^a-zA-Z0-9_]*$', '', trimmed)
+        # 取冒号前的部分并去除空格
+        base = trimmed.split(':')[0].strip()
+        return base.lower()  # 基名不区分大小写
+
     def process_tags(tags_str):
-        tags = tags_str.split(",")
-        seen = set()
+        tags = [t.strip() for t in tags_str.split(",") if t.strip()]
         result = []
         for tag in tags:
-            if tag not in seen:
-                seen.add(tag)
+            base = get_base(tag)
+            if base not in seen:
+                seen.add(base)
                 result.append(tag)
-        # 保留原始末尾的逗号（如果原字符串有）
-        if tags_str.endswith(",") and not result[-1]:
-            return ",".join(result)
-        return ",".join(result).rstrip(",") + ("," if tags_str.endswith(",") else "")
-    
+        # 处理末尾逗号
+        joined = ",".join(result)
+        if tags_str.endswith(","):
+            if not joined.endswith(","):
+                joined += ","
+        return joined
+
     return tuple(process_tags(tags_str) for tags_str in tags_tuple)
 
 
 def add_artist(chose_artists,artist_pref, random_weight, artist, min_weights=1, max_weights=5, 
-                            lower_weight=False, higher_weight=False, medium=0.5):
+                            lower_weight=False, higher_weight=False, medium=0.5,random_artist_weight=False):
+    artist = format_str(artist)
     if artist_pref:
         artist = f"artist:{artist}"
+    if random_artist_weight:
+        # 随机权重,值在0.5-1.5之间，正态分布，选在1附近的概率大，只要2位小数
+        num = round(random.gauss(1, 0.25), 2)
+        artist = f"({artist}:{num})"
 
     if random_weight:
         num = random.randint(min_weights, max_weights)
@@ -54,29 +91,38 @@ def add_artist(chose_artists,artist_pref, random_weight, artist, min_weights=1, 
             if random.random() < medium:
                 artist = "{" * num + artist + "}" * num
 
-        chose_artists += f"{artist},"
+    chose_artists += f"{artist},"
 
     return chose_artists
 
+def add_Tag(chose_artists,artist_pref, random_weight, artist, min_weights=1, max_weights=5, 
+                            random_artist_weight=False):
+    if artist_pref:
+        artist = f"artist:{artist}"
+    if random_artist_weight:
+        # 随机权重,值在0.5-1.5之间，正态分布，选在1附近的概率大，只要2位小数
+        num = round(random.gauss(1, 0.25), 2)
+        artist = f"({artist}:{num})"
 
-def add_year(prompt,chose_artists,
-                            year_2022=False, year_2023=False, position="最后面"):
-    if year_2022:
-        chose_artists += random.choice(["year 2022,", ""])
+    if random_weight:
+        num = random.randint(min_weights, max_weights)
+        artist = "(" * num + artist + ")" * num
 
-    if "year 2022" not in chose_artists:
-        if year_2023:
-            chose_artists += random.choice(["year 2023,", ""])
+    chose_artists += f"{artist},"
+
+    return chose_artists
+
+def add_position(prompt,chose_artists, position="最后面"):
 
     if position == "最后面":
         return (
-            f"{format_str(str(prompt))}{format_str(str(chose_artists))}",
-            format_str(str(chose_artists)),
+            f"{str(prompt)}{str(chose_artists)}",
+            str(chose_artists),
         )
     elif position == "最前面":
         return (
-            f"{format_str(str(chose_artists))}{format_str(str(prompt))}",
-            format_str(str(chose_artists)),
+            f"{str(chose_artists)}{str(prompt)}",
+            str(chose_artists),
         )
 
 
@@ -84,8 +130,6 @@ def random_artists_json(
     prompt,
     position,
     random_weight,
-    year_2022,
-    year_2023,
     artist_pref,
     lower_weight,
     higher_weight,
@@ -94,6 +138,7 @@ def random_artists_json(
     min_artists,
     min_weights,
     seed,
+    random_artist_weight,
 ):
     random.seed(seed)
     medium = 0.5
@@ -103,9 +148,11 @@ def random_artists_json(
     for _ in range(random.randint(min_artists, max_artists)):
         while (artist := artists[random.choice(list(artists.keys()))]) in chose_artists:
             pass
-        chose_artists = add_artist(chose_artists,artist_pref, random_weight, artist, min_weights, max_weights, lower_weight, higher_weight, medium)
+        chose_artists = add_artist(chose_artists,artist_pref, random_weight, artist, min_weights, max_weights, lower_weight, higher_weight, medium,random_artist_weight)
 
-    chose_artists = add_year(prompt,chose_artists, year_2022, year_2023, position)
+    #chose_artists = format_str(chose_artists)
+    #prompt = format_tag_str(prompt)
+    chose_artists = add_position(prompt,chose_artists, position)
     return chose_artists
 # 读取B列trigger以及C列count，只读取count>1000的，返回字典
 def read_csv(file_path,max_count=1000):  
@@ -128,8 +175,6 @@ def random_artists_csv(
     prompt,
     position,
     random_weight,
-    year_2022,
-    year_2023,
     artist_pref,
     lower_weight,
     higher_weight,
@@ -138,6 +183,7 @@ def random_artists_csv(
     min_artists,
     min_weights,
     seed,
+    random_artist_weight,
 ):
     random.seed(seed)
     medium = 0.5
@@ -151,9 +197,10 @@ def random_artists_csv(
     for _ in range(random.randint(min_artists, max_artists)):
         while (artist := random.choices(artists, weights=frequencies)[0]) in chose_artists:
             pass
-        chose_artists = add_artist(chose_artists,artist_pref, random_weight, artist, min_weights, max_weights, lower_weight, higher_weight, medium)
-
-    chose_artists = add_year(prompt,chose_artists, year_2022, year_2023, position)
+        chose_artists = add_artist(chose_artists,artist_pref, random_weight, artist, min_weights, max_weights, lower_weight, higher_weight, medium,random_artist_weight)
+    #chose_artists = format_str(chose_artists)
+    #prompt = format_tag_str(prompt)
+    chose_artists = add_position(prompt,chose_artists, position)
     return chose_artists
 
 
@@ -207,16 +254,16 @@ class RandomArtists:
                     "INT", {"default": 43, "min": 0, "max": 0xffffffffffffffff}
                 ),
                 "position": (["最前面", "最后面"],),
-                "random_weight": ("BOOLEAN", {"default": True}),
-                "year_2022": ("BOOLEAN", {"default": True}),
-                "year_2023": ("BOOLEAN", {"default": True}),
+                "random_weight": ("BOOLEAN", {"default": False}),
+                "random_artist_weight": ("BOOLEAN", {"default": False}),
+                "year": (["None", "year 2022", "year 2023", "year 2024"],),
                 "artist_pref": ("BOOLEAN", {"default": False}),
                 "lower_weight": ("BOOLEAN", {"default": False}),
                 "higher_weight": ("BOOLEAN", {"default": False}),
                 "max_artists": ("INT", {"default": 5, "min": 0, "max": 0xffffffffffffffff, "step": 1}),
                 "min_artists": ("INT", {"default": 2,"min": 0, "max": 0xffffffffffffffff, "step": 1}),
                 "max_weights": ("INT", {"default": 1, "min": 0, "max": 0xffffffffffffffff, "step": 1}),
-                "min_weights": ("INT", {"default": 1, "min": 0, "max": 0xffffffffffffffff, "step": 1}),
+                "min_weights": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff, "step": 1}),
             }
         }
     
@@ -224,8 +271,10 @@ class RandomArtists:
     RETURN_TYPES = ("STRING",)
     CATEGORY = "ComfyUI-pxtool"
 
-    def random_artists(self, prompt, position, random_weight, year_2022, year_2023, artist_pref, lower_weight, higher_weight, max_artists, max_weights, min_artists, min_weights, seed):
-        tag = random_artists_json(prompt, position, random_weight, year_2022, year_2023, artist_pref, lower_weight, higher_weight, max_artists, max_weights, min_artists, min_weights, seed)
+    def random_artists(self, prompt, position, random_weight, year, artist_pref, lower_weight, higher_weight, max_artists, max_weights, min_artists, min_weights, seed, random_artist_weight):
+        if year != "None":
+            prompt = year + "," + prompt
+        tag = random_artists_json(prompt, position, random_weight, artist_pref, lower_weight, higher_weight, max_artists, max_weights, min_artists, min_weights, seed, random_artist_weight)
         return remove_duplicate_tags(tag)
 # noob随机画师串生成器，高级
 class RandomArtistsAdvanced:
@@ -240,24 +289,26 @@ class RandomArtistsAdvanced:
                     "INT", {"default": 43, "min": 0, "max": 0xffffffffffffffff}
                 ),
                 "position": (["最前面", "最后面"],),
-                "random_weight": ("BOOLEAN", {"default": True}),
-                "year_2022": ("BOOLEAN", {"default": True}),
-                "year_2023": ("BOOLEAN", {"default": True}),
+                "random_weight": ("BOOLEAN", {"default": False}),
+                "random_artist_weight": ("BOOLEAN", {"default": False}),
+                "year": (["None", "year 2022", "year 2023", "year 2024"],),
                 "artist_pref": ("BOOLEAN", {"default": False}),
                 "lower_weight": ("BOOLEAN", {"default": False}),
                 "higher_weight": ("BOOLEAN", {"default": False}),
                 "max_artists": ("INT", {"default": 5, "min": 0, "max": 0xffffffffffffffff, "step": 1}),
                 "min_artists": ("INT", {"default": 2,"min": 0, "max": 0xffffffffffffffff, "step": 1}),
                 "max_weights": ("INT", {"default": 1, "min": 0, "max": 0xffffffffffffffff, "step": 1}),
-                "min_weights": ("INT", {"default": 1, "min": 0, "max": 0xffffffffffffffff, "step": 1}),
+                "min_weights": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff, "step": 1}),
             }
         }
     
     FUNCTION = "random_artists_advanced"
     RETURN_TYPES = ("STRING",)
     CATEGORY = "ComfyUI-pxtool"
-    def random_artists_advanced(self, prompt, file, max_count, seed, position, random_weight, year_2022, year_2023, artist_pref, lower_weight, higher_weight, max_artists, max_weights, min_artists, min_weights):
-        tag = random_artists_csv(file, max_count, prompt, position, random_weight, year_2022, year_2023, artist_pref, lower_weight, higher_weight, max_artists, max_weights, min_artists, min_weights, seed)
+    def random_artists_advanced(self, prompt, file, max_count, seed, position, random_weight, year, artist_pref, lower_weight, higher_weight, max_artists, max_weights, min_artists, min_weights,random_artist_weight):
+        if year != "None":
+            prompt = year + "," + prompt
+        tag = random_artists_csv(file, max_count, prompt, position, random_weight, artist_pref, lower_weight, higher_weight, max_artists, max_weights, min_artists, min_weights, seed,random_artist_weight)
         return remove_duplicate_tags(tag)
 
 def read_character_csv(file_path, max_count=1000):
@@ -354,19 +405,15 @@ def random_tag_csv(
     max_count,
     position,
     random_weight,
-    year_2022,
-    year_2023,
     artist_pref,
-    lower_weight,
-    higher_weight,
     max_artists,
     max_weights,
     min_artists,
     min_weights,
     seed,
+    random_artist_weight,
 ):
     random.seed(seed)
-    medium = 0.5
     full_path = os.path.join(root_dir, file)
     artists_dict: dict = read_tag_csv(full_path,max_count)
     artists = list(artists_dict.keys())
@@ -377,9 +424,9 @@ def random_tag_csv(
     for _ in range(random.randint(min_artists, max_artists)):
         while (artist := random.choices(artists, weights=frequencies)[0]) in ([a for a in chose_artists.split(",") if a] + keywords):
             pass
-        chose_artists = add_artist(chose_artists,artist_pref, random_weight, artist, min_weights, max_weights, lower_weight, higher_weight, medium)
-
-    chose_artists = add_year(prompt,chose_artists, year_2022, year_2023, position)
+        chose_artists = add_Tag(chose_artists,artist_pref, random_weight, artist, min_weights, max_weights,random_artist_weight)
+    prompt = format_tag_str(prompt)
+    chose_artists = add_position(prompt,chose_artists, position)
     return chose_artists
 
 
@@ -390,7 +437,7 @@ class RandomTag:
         return {
             "required":{
                 "prompt": ("STRING", {"default": "1girl,"}),
-                "file": (["sfw_tags.csv"],),
+                "file": (["sfw_tags.csv","full_tags.csv", "nsfw_tags.csv"],),
                 "max_count": ("INT", {"default": 50000, "min": 0, "max": 0xffffffffffffffff, "step": 1000}),
                 "seed": (
                     "INT", {"default": 43, "min": 0, "max": 0xffffffffffffffff}
@@ -400,16 +447,14 @@ class RandomTag:
                 "multiple_tag": (["None","solo", "duo", "trio", "group"],),
                 "prefix": ("BOOLEAN", {"default": True}),
                 "position": (["最后面", "最前面"],),
-                "random_weight": ("BOOLEAN", {"default": True}),
-                "year_2022": ("BOOLEAN", {"default": False}),
-                "year_2023": ("BOOLEAN", {"default": False}),
+                "random_weight": ("BOOLEAN", {"default": False}),
+                "random_Tag_weight": ("BOOLEAN", {"default": False}),
+                "year": (["None", "year 2022", "year 2023", "year 2024"],),
                 "artist_pref": ("BOOLEAN", {"default": False}),
-                "lower_weight": ("BOOLEAN", {"default": False}),
-                "higher_weight": ("BOOLEAN", {"default": False}),
                 "max_tag": ("INT", {"default": 30, "min": 0, "max": 0xffffffffffffffff, "step": 1}),
                 "min_tag": ("INT", {"default": 10,"min": 0, "max": 0xffffffffffffffff, "step": 1}),
                 "max_weights": ("INT", {"default": 1, "min": 0, "max": 0xffffffffffffffff, "step": 1}),
-                "min_weights": ("INT", {"default": 1, "min": 0, "max": 0xffffffffffffffff, "step": 1}),
+                "min_weights": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff, "step": 1}),
             }
         }
 
@@ -417,8 +462,8 @@ class RandomTag:
     RETURN_TYPES = ("STRING",)
     CATEGORY = "ComfyUI-pxtool"
 
-    def random_tag(self, prompt, file, max_count, seed, position, random_weight, year_2022, year_2023, artist_pref, 
-                   lower_weight, higher_weight, max_tag, max_weights, min_tag, min_weights, prefix, girl_tag,boy_tag,multiple_tag):
+    def random_tag(self, prompt, file, max_count, seed, position, random_weight,year, artist_pref, 
+                    max_tag, max_weights, min_tag, min_weights, prefix, girl_tag,boy_tag,multiple_tag,random_Tag_weight):
         if multiple_tag != "None":
             prompt = prompt.replace("solo,", "")
             prompt = multiple_tag + "," + prompt
@@ -428,9 +473,11 @@ class RandomTag:
         if girl_tag != "None":
             prompt = prompt.replace("1girl,", "")
             prompt = girl_tag + "," + prompt
+        if year != "None":
+            prompt = year + "," + prompt
         if prefix:
             prompt = "masterpiece, best quality, newest, absurdres, highres, safe," + prompt
-        tag =random_tag_csv(prompt, file, max_count, position, random_weight, year_2022, year_2023, artist_pref, lower_weight, higher_weight, max_tag, max_weights, min_tag, min_weights, seed)
+        tag =random_tag_csv(prompt, file, max_count, position, random_weight, artist_pref,  max_tag, max_weights, min_tag, min_weights, seed,random_Tag_weight)
         return remove_duplicate_tags(tag)
 
 # 质量标签添加器，masterpiece > best quality > high quality / good quality > normal quality > low quality / bad quality > worst quality
@@ -486,15 +533,16 @@ class NegativeTag:
             "seed": (
                     "INT", {"default": 43, "min": 0, "max": 0xffffffffffffffff}
                 ),
-            "keywords" : (["None","1girl", "2girls", "3girls", "4girls", "5girls","6+girls", "multiple_girls","1boy", "2boys", "3boys", "4boys", "5boys","6+boys", "multiple_boys","solo", "duo", "trio", "group"],),
-            "random_weight": ("BOOLEAN", {"default": True}),
+            "girl_tag" : (["None","1girl", "2girls", "3girls", "4girls", "5girls","6+girls", "sisters", "1other", "multiple_girls"],),
+            "boy_tag": ([ "None","1boy", "2boys", "3boys", "4boys", "5boys","6+boys", "multiple_boys"],),
+            "multiple_tag": (["None","solo", "duo", "trio", "group"],),
+            "random_weight": ("BOOLEAN", {"default": False}),
+            "random_Tag_weight": ("BOOLEAN", {"default": False}),
             "old": ("BOOLEAN", {"default": True}),
-            "lower_weight": ("BOOLEAN", {"default": False}),
-            "higher_weight": ("BOOLEAN", {"default": False}),
             "max_tag": ("INT", {"default": 30, "min": 0, "max": 0xffffffffffffffff, "step": 1}),
             "min_tag": ("INT", {"default": 10,"min": 0, "max": 0xffffffffffffffff, "step": 1}),
             "max_weights": ("INT", {"default": 1, "min": 0, "max": 0xffffffffffffffff, "step": 1}),
-            "min_weights": ("INT", {"default": 1, "min": 0, "max": 0xffffffffffffffff, "step": 1}),
+            "min_weights": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff, "step": 1}),
             }
         }
     
@@ -502,21 +550,27 @@ class NegativeTag:
     RETURN_TYPES = ("STRING",)
     CATEGORY = "ComfyUI-pxtool"
 
-    def negative_tag(self, prompt, seed, random_weight, old, lower_weight, higher_weight, max_tag, max_weights, min_tag, min_weights,keywords):
+    def negative_tag(self, prompt, seed, random_weight, old, max_tag, max_weights, min_tag, min_weights,random_Tag_weight,girl_tag,boy_tag,multiple_tag):
         random.seed(seed)
-        medium = 0.5
-        if keywords != "None":
-            prompt = keywords + "," + prompt
+        if multiple_tag != "None":
+            prompt = prompt.replace("solo,", "")
+            multiple_tag = add_Tag("",False, random_weight, multiple_tag, min_weights, max_weights,random_Tag_weight)
+            prompt = multiple_tag + "," + prompt
+        if boy_tag != "None":
+            prompt = prompt.replace("1boy,", "")
+            prompt = boy_tag + "," + prompt
+        if girl_tag != "None":
+            prompt = prompt.replace("1girl,", "")
+            prompt = girl_tag + "," + prompt
         artists_dict: dict = read_txt(os.path.join(root_dir, "NegativeTag.txt"))
         chose_artists = ""
         for _ in range(random.randint(min_tag, max_tag)):
             while (artist := random.choice(list(artists_dict))) in chose_artists:
                 pass
-            chose_artists = add_artist(chose_artists,False, random_weight, artist, min_weights, max_weights, lower_weight, higher_weight, medium)
-
+            chose_artists = add_Tag(chose_artists,False, random_weight, artist, min_weights, max_weights,random_Tag_weight)
         if old:
             chose_artists += "old,"
-        tags = (f"{format_str(str(prompt))}{format_str(str(chose_artists))}"),format_str(str(chose_artists))
+        tags = (f"{str(prompt)}{str(chose_artists)}"),str(chose_artists)
         return remove_duplicate_tags(tags)
 
 
