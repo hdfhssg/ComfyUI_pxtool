@@ -41,43 +41,43 @@ This is a custom plugin node for ComfyUI that modifies and extends some features
   <tr>
     <td align="center">
       <div>fp8_e5m2+fp8_e5m2</div>
-      <img src="img/fp8_e5m2+fp8_e5m2_00001_.png" width="200" alt="fp8_e5m2+fp8_e5m2">
+      <img src="img/fp8_e5m2+fp8_e5m2_00001_.png" width="250" alt="fp8_e5m2+fp8_e5m2">
     </td>
     <td align="center">
       <div>fp8_e5m2+fp8_e4m3fn</div>
-      <img src="img/fp8_e5m2+fp8_e4m3fn_00001_.png" width="200" alt="fp8_e5m2+fp8_e4m3fn">
+      <img src="img/fp8_e5m2+fp8_e4m3fn_00001_.png" width="250" alt="fp8_e5m2+fp8_e4m3fn">
     </td>
     <td align="center">
       <div>fp8_e5m2+fp16</div>
-      <img src="img/fp8_e5m2+fp16_00001_.png" width="200" alt="fp8_e5m2+fp16">
+      <img src="img/fp8_e5m2+fp16_00001_.png" width="250" alt="fp8_e5m2+fp16">
     </td>
   </tr>
   <tr>
     <td align="center">
       <div>fp8_e4m3fn+fp8_e5m2</div>
-      <img src="img/fp8_e4m3fn+fp8_e5m2_00001_.png" width="200" alt="fp8_e4m3fn+fp8_e5m2">
+      <img src="img/fp8_e4m3fn+fp8_e5m2_00001_.png" width="250" alt="fp8_e4m3fn+fp8_e5m2">
     </td>
     <td align="center">
       <div>fp8_e4m3fn+fp8_e4m3fn</div>
-      <img src="img/fp8_e4m3fn+fp8_e4m3fn_00001_.png" width="200" alt="fp8_e4m3fn+fp8_e4m3fn">
+      <img src="img/fp8_e4m3fn+fp8_e4m3fn_00001_.png" width="250" alt="fp8_e4m3fn+fp8_e4m3fn">
     </td>
     <td align="center">
       <div>fp8_e4m3fn+fp16</div>
-      <img src="img/fp8_e4m3fn+fp16_00001_.png" width="200" alt="fp8_e4m3fn+fp16">
+      <img src="img/fp8_e4m3fn+fp16_00001_.png" width="250" alt="fp8_e4m3fn+fp16">
     </td>
   </tr>
   <tr>
     <td align="center">
       <div>fp16+fp8_e4m3fn</div>
-      <img src="img/fp16+fp8_e4m3fn_00001_.png" width="200" alt="fp16+fp8_e4m3fn">
+      <img src="img/fp16+fp8_e4m3fn_00001_.png" width="250" alt="fp16+fp8_e4m3fn">
     </td>
     <td align="center">
       <div>fp16+fp8_e4m3fn</div>
-      <img src="img/fp16+fp8_e4m3fn_00001_.png" width="200" alt="fp16+fp8_e4m3fn">
+      <img src="img/fp16+fp8_e4m3fn_00001_.png" width="250" alt="fp16+fp8_e4m3fn">
     </td>
     <td align="center">
       <div>fp16+fp16</div>
-      <img src="img/fp16+fp16_00001_.png" width="200" alt="fp16+fp16">
+      <img src="img/fp16+fp16_00001_.png" width="250" alt="fp16+fp16">
     </td>
   </tr>
 </table>
