@@ -28,14 +28,19 @@ This is a custom plugin node for ComfyUI that modifies and extends some features
 ## 特点 / Features
 
 **中文**
-- **功能修改：** 对原有插件的部分功能进行了改进和优化
-- **功能复现：** 在 ComfyUI 环境中成功复现了其他项目的部分功能
-- **提示词生成：** 实现了随机生成相关提示词的功能，提升使用体验
+- **功能复现：** 在 ComfyUI 环境中成功复现了[Stable-Diffusion-Webui-Civitai-Helper](https://github.com/zixaphir/Stable-Diffusion-Webui-Civitai-Helper)项目中的扫描模型下载预览图的功能，并修改实现了扫描时会扫描下载预览视频的功能
+- **提示词生成：** 按照 [noob-wiki 数据集](https://huggingface.co/datasets/Laxhar/noob-wiki/tree/main) 实现了随机生成相关提示词的功能，随机添加画师串，并随机添加权重等功能，增强了用户体验
+- **checkpoint加载器：** 实现了能够fp8剪枝的Checkpoint加载器，支持FP8精度英伟达的小显卡用户(6GB显存左右甚至更小的4G显存)也可以运行SDXL模型，避免出现显存不足的错误，虽然降低了精度，生成的图片质量会降低，但是在一些场景下可以接受
 
 **English**
-- **Feature Modification:** Improved and optimized some functionalities of the original plugin
-- **Feature Reproduction:** Successfully reproduced some features of other projects within the ComfyUI environment
-- **Prompt Word Generation:** Implemented a feature to randomly generate related prompt words, enhancing the user experience
+- **Feature Reproduction:** Successfully reproduced the model preview image download feature from the [Stable-Diffusion-Webui-Civitai-Helper](https://github.com/zixaphir/Stable-Diffusion-Webui-Civitai-Helper) project within the ComfyUI environment, and modified the implementation to download preview videos during scanning
+- **Prompt Word Generation:** Implemented a feature to randomly generate related prompt words by referencing the [noob-wiki dataset](https://huggingface.co/datasets/Laxhar/noob-wiki/tree/main), randomly adding artist strings, and randomly adding weights to enhance the user experience
+- **Checkpoint Loader:** Implemented a Checkpoint loader that can perform fp8 pruning, allowing users with small NVIDIA GPUs (around 6GB of VRAM or even smaller 4GB VRAM) to run the SDXL model without running out of memory errors. Although the accuracy is reduced and the image quality is lowered, it is acceptable in some scenarios.
+
+| ![fp8_e5m2+fp8_e5m2](fp8_e5m2+fp8_e5m2_00001_.png) | ![fp8_e5m2+fp8_e4m3fn](fp8_e5m2+fp8_e4m3fn_00001_.png) | ![fp8_e4m3fn+fp16](fp8_e4m3fn+fp16_00001_.png) |
+|----------------------|----------------------|----------------------|
+| ![fp8_e4m3fn+fp8_e5m2](fp8_e4m3fn+fp8_e5m2_00001_.png) | ![fp8_e4m3fn+fp8_e4m3fn](fp8_e4m3fn+fp8_e4m3fn_00001_.png) | ![fp8_e4m3fn+fp16](fp8_e4m3fn+fp16_00001_.png) |
+| ![fp16+fp8_e5m2](fp16+fp8_e5m2_00001_.png) | ![fp16+fp8_e4m3fn](fp16+fp8_e4m3fn_00001_.png) | ![fp16+fp16](fp16+fp16_00001_.png) |
 
 ## 安装 / Installation
 
