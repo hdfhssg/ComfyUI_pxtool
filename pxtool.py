@@ -573,7 +573,7 @@ class NegativeTag:
             "old": ("BOOLEAN", {"default": True}),
             "max_tag": ("INT", {"default": 30, "min": 0, "max": 0xffffffffffffffff, "step": 1}),
             "min_tag": ("INT", {"default": 10,"min": 0, "max": 0xffffffffffffffff, "step": 1}),
-            "max_weights": ("INT", {"default": 1, "min": 0, "max": 0xffffffffffffffff, "step": 1}),
+            "max_weights": ("INT", {"default": 3, "min": 0, "max": 0xffffffffffffffff, "step": 1}),
             "min_weights": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff, "step": 1}),
             "format_tags": ("BOOLEAN", {"default": True}),
             }
