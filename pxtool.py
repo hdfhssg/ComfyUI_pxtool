@@ -83,7 +83,7 @@ def add_artist(chose_artists,artist_pref, random_artists, artist, min_weights=1,
         artist = f"({artist}:{num})"
 
     if random_artists:
-        num = np.random.randint(min_weights, max_weights)
+        num = np.random.randint(min_weights, max_weights+1)
         if lower_weight and higher_weight:
             symbol = np.random.choice([["[", "]"], ["{", "}"]])
             artist = symbol[0] * num + artist + symbol[1] * num
