@@ -6,6 +6,7 @@ import re
 import csv
 from folder_paths import models_dir
 from pathlib import Path
+import numpy as np
 model_folder_path = Path(models_dir)
 root_dir = model_folder_path.parent
 root_dir = root_dir / "custom_nodes/ComfyUI_pxtool"
@@ -69,46 +70,48 @@ def remove_duplicate_tags(tags_tuple):
     return tuple(process_tags(tags_str) for tags_str in tags_tuple)
 
 
-def add_artist(chose_artists,artist_pref, random_weight, artist, min_weights=1, max_weights=5, 
-                            lower_weight=False, higher_weight=False, medium=0.5,random_artist_weight=False):
-    artist = format_str(artist)
+def add_artist(chose_artists,artist_pref, random_artists, artist, min_weights=1, max_weights=5, 
+                            lower_weight=False, higher_weight=False, medium=0.5,random_artist_weight=False,format_artists=True):
+    if format_artists:
+        artist = format_str(artist)
     if artist_pref:
         artist = f"artist:{artist}"
     if random_artist_weight:
-        # 随机权重,值在0.5-1.5之间，正态分布，选在1附近的概率大，只要2位小数
-        num = round(random.gauss(1, 0.25), 2)
+        # 随机权重,值在0.5-1.5之间，正态分布，选在1附近的概率大，只要2位小数,1, 0.25
+        num = round(np.random.normal(1, 0.25), 2)
         artist = f"({artist}:{num})"
 
-    if random_weight:
-        num = random.randint(min_weights, max_weights)
+    if random_artists:
+        num = np.random.randint(min_weights, max_weights)
         if lower_weight and higher_weight:
-            symbol = random.choice([["[", "]"], ["{", "}"]])
+            symbol = np.random.choice([["[", "]"], ["{", "}"]])
             artist = symbol[0] * num + artist + symbol[1] * num
         elif lower_weight:
-            if random.random() < medium:
+            if np.random.random() < medium:
                 artist = "[" * num + artist + "]" * num
         elif higher_weight:
-            if random.random() < medium:
+            if np.random.random() < medium:
                 artist = "{" * num + artist + "}" * num
 
-    chose_artists += f"{artist},"
+        chose_artists += f"{artist},"
 
     return chose_artists
 
-def add_Tag(chose_artists,artist_pref, random_weight, artist, min_weights=1, max_weights=5, 
-                            random_artist_weight=False):
-    if artist_pref:
-        artist = f"artist:{artist}"
+def add_Tag(chose_artists,random_weight, random_artists, artist, min_weights=1, max_weights=5, 
+                            random_artist_weight=False,format_tags=True):
+    # 是否format_str
+    if format_tags:
+        artist = format_str(artist)
     if random_artist_weight:
         # 随机权重,值在0.5-1.5之间，正态分布，选在1附近的概率大，只要2位小数
-        num = round(random.gauss(1, 0.25), 2)
+        num = round(np.random.normal(1, 0.25), 2)
         artist = f"({artist}:{num})"
 
     if random_weight:
-        num = random.randint(min_weights, max_weights)
+        num = np.random.randint(min_weights, max_weights)
         artist = "(" * num + artist + ")" * num
-
-    chose_artists += f"{artist},"
+    if random_artists:
+        chose_artists += f"{artist},"
 
     return chose_artists
 
@@ -129,7 +132,7 @@ def add_position(prompt,chose_artists, position="最后面"):
 def random_artists_json(
     prompt,
     position,
-    random_weight,
+    random_artists,
     artist_pref,
     lower_weight,
     higher_weight,
@@ -139,8 +142,11 @@ def random_artists_json(
     min_weights,
     seed,
     random_artist_weight,
+    artist_seed,
+    format_artists=True,
 ):
     random.seed(seed)
+    np.random.SeedSequence(artist_seed)
     medium = 0.5
     path_json = os.path.join(root_dir, "artists.json")
     artists: dict = read_json(path_json)
@@ -148,7 +154,7 @@ def random_artists_json(
     for _ in range(random.randint(min_artists, max_artists)):
         while (artist := artists[random.choice(list(artists.keys()))]) in chose_artists:
             pass
-        chose_artists = add_artist(chose_artists,artist_pref, random_weight, artist, min_weights, max_weights, lower_weight, higher_weight, medium,random_artist_weight)
+        chose_artists = add_artist(chose_artists,artist_pref, random_artists, artist, min_weights, max_weights, lower_weight, higher_weight, medium,random_artist_weight,format_artists)
 
     #chose_artists = format_str(chose_artists)
     #prompt = format_tag_str(prompt)
@@ -174,7 +180,7 @@ def random_artists_csv(
     max_count,
     prompt,
     position,
-    random_weight,
+    random_artists,
     artist_pref,
     lower_weight,
     higher_weight,
@@ -184,12 +190,14 @@ def random_artists_csv(
     min_weights,
     seed,
     random_artist_weight,
+    artist_seed,
+    format_artists=True,
 ):
     random.seed(seed)
+    np.random.SeedSequence(artist_seed)
     medium = 0.5
     #artists: dict = read_csv("./custom_nodes/ComfyUI_pxtool/danbooru_artist.csv")
     full_path = os.path.join(root_dir, file)
-    artists_dict: dict = read_csv(full_path,max_count)
     artists_dict: dict = read_csv(full_path,max_count)
     artists = list(artists_dict.keys())
     frequencies = list(artists_dict.values())
@@ -197,7 +205,7 @@ def random_artists_csv(
     for _ in range(random.randint(min_artists, max_artists)):
         while (artist := random.choices(artists, weights=frequencies)[0]) in chose_artists:
             pass
-        chose_artists = add_artist(chose_artists,artist_pref, random_weight, artist, min_weights, max_weights, lower_weight, higher_weight, medium,random_artist_weight)
+        chose_artists = add_artist(chose_artists,artist_pref, random_artists, artist, min_weights, max_weights, lower_weight, higher_weight, medium,random_artist_weight,format_artists)
     #chose_artists = format_str(chose_artists)
     #prompt = format_tag_str(prompt)
     chose_artists = add_position(prompt,chose_artists, position)
@@ -254,8 +262,9 @@ class RandomArtists:
                     "INT", {"default": 43, "min": 0, "max": 0xffffffffffffffff}
                 ),
                 "position": (["最前面", "最后面"],),
-                "random_weight": ("BOOLEAN", {"default": False}),
+                "random_artists": ("BOOLEAN", {"default": True}),
                 "random_artist_weight": ("BOOLEAN", {"default": False}),
+                "artist_weight_seed": ("INT", {"default": 43, "min": 0, "max": 0xffffffffffffffff}),
                 "year": (["None", "year 2022", "year 2023", "year 2024"],),
                 "artist_pref": ("BOOLEAN", {"default": False}),
                 "lower_weight": ("BOOLEAN", {"default": False}),
@@ -264,6 +273,7 @@ class RandomArtists:
                 "min_artists": ("INT", {"default": 2,"min": 0, "max": 0xffffffffffffffff, "step": 1}),
                 "max_weights": ("INT", {"default": 1, "min": 0, "max": 0xffffffffffffffff, "step": 1}),
                 "min_weights": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff, "step": 1}),
+                "format_artists": ("BOOLEAN", {"default": True}),
             }
         }
     
@@ -271,10 +281,12 @@ class RandomArtists:
     RETURN_TYPES = ("STRING",)
     CATEGORY = "ComfyUI-pxtool"
 
-    def random_artists(self, prompt, position, random_weight, year, artist_pref, lower_weight, higher_weight, max_artists, max_weights, min_artists, min_weights, seed, random_artist_weight):
+    def random_artists(self, prompt, position, random_artists, year, artist_pref, lower_weight, higher_weight, 
+                       max_artists, max_weights, min_artists, min_weights, seed, random_artist_weight, artist_weight_seed,format_artists):
         if year != "None":
             prompt = year + "," + prompt
-        tag = random_artists_json(prompt, position, random_weight, artist_pref, lower_weight, higher_weight, max_artists, max_weights, min_artists, min_weights, seed, random_artist_weight)
+        tag = random_artists_json(prompt, position, random_artists, artist_pref, lower_weight, higher_weight, 
+                                  max_artists, max_weights, min_artists, min_weights, seed, random_artist_weight, artist_weight_seed,format_artists)
         return remove_duplicate_tags(tag)
 # noob随机画师串生成器，高级
 class RandomArtistsAdvanced:
@@ -289,8 +301,9 @@ class RandomArtistsAdvanced:
                     "INT", {"default": 43, "min": 0, "max": 0xffffffffffffffff}
                 ),
                 "position": (["最前面", "最后面"],),
-                "random_weight": ("BOOLEAN", {"default": False}),
+                "random_artists": ("BOOLEAN", {"default": True}),
                 "random_artist_weight": ("BOOLEAN", {"default": False}),
+                "artist_weight_seed": ("INT", {"default": 43, "min": 0, "max": 0xffffffffffffffff}),
                 "year": (["None", "year 2022", "year 2023", "year 2024"],),
                 "artist_pref": ("BOOLEAN", {"default": False}),
                 "lower_weight": ("BOOLEAN", {"default": False}),
@@ -299,16 +312,21 @@ class RandomArtistsAdvanced:
                 "min_artists": ("INT", {"default": 2,"min": 0, "max": 0xffffffffffffffff, "step": 1}),
                 "max_weights": ("INT", {"default": 1, "min": 0, "max": 0xffffffffffffffff, "step": 1}),
                 "min_weights": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff, "step": 1}),
+                "format_artists": ("BOOLEAN", {"default": True}),
             }
         }
     
     FUNCTION = "random_artists_advanced"
     RETURN_TYPES = ("STRING",)
     CATEGORY = "ComfyUI-pxtool"
-    def random_artists_advanced(self, prompt, file, max_count, seed, position, random_weight, year, artist_pref, lower_weight, higher_weight, max_artists, max_weights, min_artists, min_weights,random_artist_weight):
+    def random_artists_advanced(self, prompt, file, max_count, seed, position, random_artists, year, 
+                                artist_pref, lower_weight, higher_weight, max_artists, max_weights, 
+                                min_artists, min_weights,random_artist_weight,artist_weight_seed,format_artists):
         if year != "None":
             prompt = year + "," + prompt
-        tag = random_artists_csv(file, max_count, prompt, position, random_weight, artist_pref, lower_weight, higher_weight, max_artists, max_weights, min_artists, min_weights, seed,random_artist_weight)
+        tag = random_artists_csv(file, max_count, prompt, position, random_artists, artist_pref, 
+                                 lower_weight, higher_weight, max_artists, max_weights, min_artists, 
+                                 min_weights, seed,random_artist_weight,artist_weight_seed,format_artists)
         return remove_duplicate_tags(tag)
 
 def read_character_csv(file_path, max_count=1000):
@@ -404,16 +422,19 @@ def random_tag_csv(
     file,
     max_count,
     position,
+    random_artists,
     random_weight,
-    artist_pref,
     max_artists,
     max_weights,
     min_artists,
     min_weights,
     seed,
     random_artist_weight,
+    tag_seed,
+    format_tags=True,
 ):
     random.seed(seed)
+    np.random.SeedSequence(tag_seed)
     full_path = os.path.join(root_dir, file)
     artists_dict: dict = read_tag_csv(full_path,max_count)
     artists = list(artists_dict.keys())
@@ -424,7 +445,7 @@ def random_tag_csv(
     for _ in range(random.randint(min_artists, max_artists)):
         while (artist := random.choices(artists, weights=frequencies)[0]) in ([a for a in chose_artists.split(",") if a] + keywords):
             pass
-        chose_artists = add_Tag(chose_artists,artist_pref, random_weight, artist, min_weights, max_weights,random_artist_weight)
+        chose_artists = add_Tag(chose_artists,random_weight, random_artists, artist, min_weights, max_weights,random_artist_weight,format_tags)
     prompt = format_tag_str(prompt)
     chose_artists = add_position(prompt,chose_artists, position)
     return chose_artists
@@ -447,14 +468,18 @@ class RandomTag:
                 "multiple_tag": (["None","solo", "duo", "trio", "group"],),
                 "prefix": ("BOOLEAN", {"default": True}),
                 "position": (["最后面", "最前面"],),
-                "random_weight": ("BOOLEAN", {"default": False}),
+                "random_tag": ("BOOLEAN", {"default": True}),
                 "random_Tag_weight": ("BOOLEAN", {"default": False}),
+                "random_weight": ("BOOLEAN", {"default": False}),
+                "tag_weight_seed": (
+                    "INT", {"default": 43, "min": 0, "max": 0xffffffffffffffff}
+                    ),
                 "year": (["None", "year 2022", "year 2023", "year 2024"],),
-                "artist_pref": ("BOOLEAN", {"default": False}),
                 "max_tag": ("INT", {"default": 30, "min": 0, "max": 0xffffffffffffffff, "step": 1}),
                 "min_tag": ("INT", {"default": 10,"min": 0, "max": 0xffffffffffffffff, "step": 1}),
                 "max_weights": ("INT", {"default": 1, "min": 0, "max": 0xffffffffffffffff, "step": 1}),
                 "min_weights": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff, "step": 1}),
+                "format_tags": ("BOOLEAN", {"default": True}),
             }
         }
 
@@ -462,8 +487,8 @@ class RandomTag:
     RETURN_TYPES = ("STRING",)
     CATEGORY = "ComfyUI-pxtool"
 
-    def random_tag(self, prompt, file, max_count, seed, position, random_weight,year, artist_pref, 
-                    max_tag, max_weights, min_tag, min_weights, prefix, girl_tag,boy_tag,multiple_tag,random_Tag_weight):
+    def random_tag(self, prompt, file, max_count, seed, position, random_tag,year, random_weight, 
+                    max_tag, max_weights, min_tag, min_weights, prefix, girl_tag,boy_tag,multiple_tag,random_Tag_weight,tag_weight_seed,format_tags):
         if multiple_tag != "None":
             prompt = prompt.replace("solo,", "")
             prompt = multiple_tag + "," + prompt
@@ -477,7 +502,8 @@ class RandomTag:
             prompt = year + "," + prompt
         if prefix:
             prompt = "masterpiece, best quality, newest, absurdres, highres, safe," + prompt
-        tag =random_tag_csv(prompt, file, max_count, position, random_weight, artist_pref,  max_tag, max_weights, min_tag, min_weights, seed,random_Tag_weight)
+        tag =random_tag_csv(prompt,file,max_count,position, random_tag,random_weight,max_tag,max_weights,
+                            min_tag,min_weights,seed,random_Tag_weight,tag_weight_seed,format_tags)
         return remove_duplicate_tags(tag)
 
 # 质量标签添加器，masterpiece > best quality > high quality / good quality > normal quality > low quality / bad quality > worst quality
@@ -536,13 +562,18 @@ class NegativeTag:
             "girl_tag" : (["None","1girl", "2girls", "3girls", "4girls", "5girls","6+girls", "sisters", "1other", "multiple_girls"],),
             "boy_tag": ([ "None","1boy", "2boys", "3boys", "4boys", "5boys","6+boys", "multiple_boys"],),
             "multiple_tag": (["None","solo", "duo", "trio", "group"],),
-            "random_weight": ("BOOLEAN", {"default": False}),
+            "random_tag": ("BOOLEAN", {"default": True}),
             "random_Tag_weight": ("BOOLEAN", {"default": False}),
+            "random_weight": ("BOOLEAN", {"default": False}),
+            "tag_weight_seed": (
+                    "INT", {"default": 43, "min": 0, "max": 0xffffffffffffffff}
+                ),
             "old": ("BOOLEAN", {"default": True}),
             "max_tag": ("INT", {"default": 30, "min": 0, "max": 0xffffffffffffffff, "step": 1}),
             "min_tag": ("INT", {"default": 10,"min": 0, "max": 0xffffffffffffffff, "step": 1}),
             "max_weights": ("INT", {"default": 1, "min": 0, "max": 0xffffffffffffffff, "step": 1}),
             "min_weights": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff, "step": 1}),
+            "format_tags": ("BOOLEAN", {"default": True}),
             }
         }
     
@@ -550,11 +581,13 @@ class NegativeTag:
     RETURN_TYPES = ("STRING",)
     CATEGORY = "ComfyUI-pxtool"
 
-    def negative_tag(self, prompt, seed, random_weight, old, max_tag, max_weights, min_tag, min_weights,random_Tag_weight,girl_tag,boy_tag,multiple_tag):
+    def negative_tag(self, prompt, seed,random_weight, random_tag, old, max_tag, max_weights, min_tag, 
+                     min_weights,random_Tag_weight,girl_tag,boy_tag,multiple_tag,tag_weight_seed,format_tags):
         random.seed(seed)
+        np.random.SeedSequence(tag_weight_seed)
         if multiple_tag != "None":
             prompt = prompt.replace("solo,", "")
-            multiple_tag = add_Tag("",False, random_weight, multiple_tag, min_weights, max_weights,random_Tag_weight)
+            multiple_tag = add_Tag("",random_weight, random_tag, multiple_tag, min_weights, max_weights,random_Tag_weight,format_tags)
             prompt = multiple_tag + "," + prompt
         if boy_tag != "None":
             prompt = prompt.replace("1boy,", "")
@@ -567,13 +600,25 @@ class NegativeTag:
         for _ in range(random.randint(min_tag, max_tag)):
             while (artist := random.choice(list(artists_dict))) in chose_artists:
                 pass
-            chose_artists = add_Tag(chose_artists,False, random_weight, artist, min_weights, max_weights,random_Tag_weight)
+            chose_artists = add_Tag(chose_artists,random_weight, random_tag, artist, min_weights, max_weights,random_Tag_weight,format_tags)
         if old:
             chose_artists += "old,"
         tags = (f"{str(prompt)}{str(chose_artists)}"),str(chose_artists)
         return remove_duplicate_tags(tags)
 
+class PX_Seed:
 
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {"required": {"seed": ("INT", {"default": 43, "min": 0, "max": 0xffffffffffffffff})}}
+
+    RETURN_TYPES = ("INT", )
+    RETURN_NAMES = ("seed",)
+    FUNCTION = "seedint"
+    CATEGORY = "ComfyUI-pxtool"
+
+    def seedint(self, seed):
+        return (seed,)
 
 NODE_CLASS_MAPPINGS = {
     "CivitaiHelper": CivitaiHelper,
@@ -584,4 +629,5 @@ NODE_CLASS_MAPPINGS = {
     "RandomArtistsAdvanced": RandomArtistsAdvanced,
     "QualityTag": QualityTag,
     "NegativeTag": NegativeTag,
+    "PX_Seed": PX_Seed,
 }

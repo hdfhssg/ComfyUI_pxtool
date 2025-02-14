@@ -5,12 +5,12 @@
 ## 打包环境 / Packaged Environment
 
 **中文**
-- 打包了目前5090、5090D、5080等50系显卡绘图在Stable-Diffusion-Webui所需的torch2.6+cuda12.8的跑图环境，[演示链接](https://b23.tv/xKnhB18),[百度网盘](https://pan.baidu.com/s/1rEJlhPeWLcKDHCeqctx60g?pwd=pxhd)，已经在5090D在测试能运行。
-- 50系显卡在comfyui所需的环境已经有人打包看[这里](https://github.com/comfyanonymous/ComfyUI/discussions/6643)
+- 打包了目前5090、5090D、5080等50系显卡绘图在Stable-Diffusion-Webui所需的torch2.6+cuda12.8的跑图环境，[演示链接](https://b23.tv/xKnhB18),[夸克网盘](https://pan.quark.cn/s/f57aa79a1ecb)，提取码：7aCZ，已经在5090D在测试能运行。
+- 50系显卡在comfyui所需的环境已经打包，[演示链接](https://b23.tv/MelKmVW),[夸克网盘](https://pan.quark.cn/s/f57aa79a1ecb)，提取码：7aCZ,已经测试5090可以使用Flux-Trainer训练Lora模型。
 
 **English**
 - Packaged the drawing environment of the 50 series GPU such as 5090, 5090D, 5080, etc. required by Stable-Diffusion-Webui with torch2.6+cuda12.8, [Demo link](https://b23.tv/xKnhB18), [Baidu Netdisk](https://pan.baidu.com/s/1rEJlhPeWLcKDHCeqctx60g?pwd=pxhd), and it has been tested on 5090D.
-- Someone has already packaged the environment required by the 50 series GPU in comfyui, see [here](https://github.com/comfyanonymous/ComfyUI/discussions/6643)
+- The environment required by the 50 series GPU in comfyui has been packaged, [Demo link](https://b23.tv/MelKmVW), [Baidu Netdisk](https://pan.baidu.com/s/1rEJlhPeWLcKDHCeqctx60g?pwd=pxhd), and it has been tested that 5090 can use Flux-Trainer to train the Lora model.
 
 
 **中文**
