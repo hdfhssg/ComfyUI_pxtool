@@ -110,7 +110,7 @@ def add_Tag(chose_artists,random_weight, random_artists, artist, min_weights=1, 
         artist = f"({artist}:{num})"
 
     if random_weight:
-        num = np.random.randint(min_weights, max_weights)
+        num = np.random.randint(min_weights, max_weights+1)
         artist = "(" * num + artist + ")" * num
     if random_artists:
         chose_artists += f"{artist},"
