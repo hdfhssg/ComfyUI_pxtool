@@ -79,6 +79,7 @@ def add_artist(chose_artists,artist_pref, random_artists, artist, min_weights=1,
     if random_artist_weight:
         # 随机权重,值在0.5-1.5之间，正态分布，选在1附近的概率大，只要2位小数,1, 0.25
         num = round(np.random.normal(1, 0.25), 2)
+        num = max(0.5, min(1.3, num))
         artist = f"({artist}:{num})"
 
     if random_artists:
@@ -105,6 +106,7 @@ def add_Tag(chose_artists,random_weight, random_artists, artist, min_weights=1, 
     if random_artist_weight:
         # 随机权重,值在0.5-1.5之间，正态分布，选在1附近的概率大，只要2位小数
         num = round(np.random.normal(1, 0.25), 2)
+        num = max(0.5, min(1.3, num))
         artist = f"({artist}:{num})"
 
     if random_weight:

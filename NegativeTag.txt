@@ -86,5 +86,6 @@ amputee
 severed limb
 mutated hands
 distorted anatomy
+nsfw
 explicit
 censored

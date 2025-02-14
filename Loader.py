@@ -7,6 +7,7 @@ from comfy import clip_vision
 import yaml
 import logging
 import torch
+
 def load_checkpoint(config_path=None, ckpt_path=None, output_vae=True, output_clip=True, embedding_directory=None, state_dict=None, config=None, model_options={}):
     logging.warning("Warning: The load checkpoint with config function is deprecated and will eventually be removed, please use the other one.")
     model, clip, vae, _ = load_checkpoint_guess_config(
@@ -148,7 +149,7 @@ def load_state_dict_guess_config(sd, output_vae=True, output_clip=True, output_c
 
 
 
-class CheckpointLoaderPX:
+class CheckpointLoaderSimplePX:
     @classmethod
     def INPUT_TYPES(s):
         return {
@@ -165,7 +166,7 @@ class CheckpointLoaderPX:
                        "The VAE model used for encoding and decoding images to and from latent space.")
     FUNCTION = "load_checkpoint"
 
-    CATEGORY = "ComfyUI-pxtool"
+    CATEGORY = "loaders"
     DESCRIPTION = "Loads a diffusion model checkpoint, diffusion models are used to denoise latents."
 
     def load_checkpoint(self, ckpt_name, unet_dtype, clip_dtype, vae_dtype):
@@ -179,18 +180,19 @@ class CheckpointLoaderPX:
             model_options["unet_dtype"] = torch.float8_e5m2
         if clip_dtype == "fp8_e4m3fn":
             model_options["clip_dtype"] = torch.float8_e4m3fn
+        elif clip_dtype == "fp8_e4m3fn_fast":
+            model_options["clip_dtype"] = torch.float8_e4m3fn
         elif clip_dtype == "fp8_e5m2":
             model_options["clip_dtype"] = torch.float8_e5m2
         if vae_dtype == "fp16":
             model_options["vae_dtype"] = torch.float16
         elif vae_dtype == "fp32":
             model_options["vae_dtype"] = torch.float32
-        
         ckpt_path = folder_paths.get_full_path_or_raise("checkpoints", ckpt_name)
         out = load_checkpoint_guess_config(ckpt_path, output_vae=True, output_clip=True, embedding_directory=folder_paths.get_folder_paths("embeddings"), model_options = model_options)
         return out[:3]
     
 NODE_CLASS_loaders = {
-    'CheckpointLoaderPX': CheckpointLoaderPX,
+    'CheckpointLoaderSimplePX': CheckpointLoaderSimplePX,
     
 }
