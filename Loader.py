@@ -147,8 +147,6 @@ def load_state_dict_guess_config(sd, output_vae=True, output_clip=True, output_c
 
     return (model_patcher, clip, vae, clipvision)
 
-
-
 class CheckpointLoaderSimplePX:
     @classmethod
     def INPUT_TYPES(s):
@@ -166,33 +164,205 @@ class CheckpointLoaderSimplePX:
                        "The VAE model used for encoding and decoding images to and from latent space.")
     FUNCTION = "load_checkpoint"
 
-    CATEGORY = "loaders"
+    CATEGORY = "ComfyUI-pxtool"
     DESCRIPTION = "Loads a diffusion model checkpoint, diffusion models are used to denoise latents."
 
     def load_checkpoint(self, ckpt_name, unet_dtype, clip_dtype, vae_dtype):
+        dtype_map = {
+            "default": None,
+            "fp8_e4m3fn": torch.float8_e4m3fn,
+            "fp8_e4m3fn_fast": torch.float8_e4m3fn,
+            "fp8_e5m2": torch.float8_e5m2,
+            "fp16": torch.float16,
+            "fp32": torch.float32,
+        }
         model_options = {}
-        if unet_dtype == "fp8_e4m3fn":
-            model_options["unet_dtype"] = torch.float8_e4m3fn
-        elif unet_dtype == "fp8_e4m3fn_fast":
-            model_options["unet_dtype"] = torch.float8_e4m3fn
+        if unet_dtype == "fp8_e4m3fn_fast":
             model_options["fp8_optimizations"] = True
-        elif unet_dtype == "fp8_e5m2":
-            model_options["unet_dtype"] = torch.float8_e5m2
-        if clip_dtype == "fp8_e4m3fn":
-            model_options["clip_dtype"] = torch.float8_e4m3fn
-        elif clip_dtype == "fp8_e4m3fn_fast":
-            model_options["clip_dtype"] = torch.float8_e4m3fn
-        elif clip_dtype == "fp8_e5m2":
-            model_options["clip_dtype"] = torch.float8_e5m2
-        if vae_dtype == "fp16":
-            model_options["vae_dtype"] = torch.float16
-        elif vae_dtype == "fp32":
-            model_options["vae_dtype"] = torch.float32
+        model_options["unet_dtype"] = dtype_map[unet_dtype]
+        model_options["clip_dtype"] = dtype_map[clip_dtype]
+        model_options["vae_dtype"] = dtype_map[vae_dtype]
         ckpt_path = folder_paths.get_full_path_or_raise("checkpoints", ckpt_name)
         out = load_checkpoint_guess_config(ckpt_path, output_vae=True, output_clip=True, embedding_directory=folder_paths.get_folder_paths("embeddings"), model_options = model_options)
         return out[:3]
+
+import os
+from comfy.controlnet import load_controlnet_state_dict
+def load_controlnet(ckpt_path, model=None, model_options={}):
     
+    if "global_average_pooling" not in model_options:
+        filename = os.path.splitext(ckpt_path)[0]
+        if filename.endswith("_shuffle") or filename.endswith("_shuffle_fp16"): #TODO: smarter way of enabling global_average_pooling
+            model_options["global_average_pooling"] = True
+
+    cnet = load_controlnet_state_dict(comfy.utils.load_torch_file(ckpt_path, safe_load=True), model=model, model_options=model_options)
+    if cnet is None:
+        logging.error("error checkpoint does not contain controlnet or t2i adapter data {}".format(ckpt_path))
+    return cnet
+
+
+class ControlNetLoaderPX:
+    @classmethod
+    def INPUT_TYPES(s):
+        return {"required": { 
+            "control_net_name": (folder_paths.get_filename_list("controlnet"), ),
+            "control_net_dtype": (["default", "fp8_e4m3fn",  "fp8_e5m2"],),
+                             }
+                             
+            }
+
+    RETURN_TYPES = ("CONTROL_NET",)
+    RETURN_NAMES = ("ControlNet",)
+    FUNCTION = "load_controlnet_px"
+
+    CATEGORY = "ComfyUI-pxtool"
+
+    def load_controlnet_px(self, control_net_name, control_net_dtype):
+        dtype_map = {
+            "default": None,
+            "fp8_e4m3fn": torch.float8_e4m3fn,
+            "fp8_e5m2": torch.float8_e5m2,
+        }
+        model_options = {}
+        model_options["dtype"] = dtype_map[control_net_dtype]
+        controlnet_path = folder_paths.get_full_path_or_raise("controlnet", control_net_name)
+        controlnet = load_controlnet(controlnet_path,model_options=model_options)
+        return (controlnet,)
+
+class CLIPLoaderPX:
+    @classmethod
+    def INPUT_TYPES(s):
+        return {"required": { "clip_name": (folder_paths.get_filename_list("text_encoders"), ),
+                              "type": (["stable_diffusion", "stable_cascade", "sd3", "stable_audio", "mochi", "ltxv", "pixart", "cosmos", "lumina2"], ),
+                              "clip_dtype": (["default", "fp8_e4m3fn", "fp8_e5m2"],),
+                              },
+                "optional": {
+                              "device": (["default", "cpu"], {"advanced": True}),
+                             }}
+    RETURN_TYPES = ("CLIP",)
+    FUNCTION = "load_clip"
+
+    CATEGORY = "ComfyUI-pxtool"
+
+    DESCRIPTION = "[Recipes]\n\nstable_diffusion: clip-l\nstable_cascade: clip-g\nsd3: t5 / clip-g / clip-l\nstable_audio: t5\nmochi: t5\ncosmos: old t5 xxl\nlumina2: gemma 2 2B"
+
+    def load_clip(self, clip_name, type="stable_diffusion", device="default", clip_dtype="default"):
+        dtype_map = {
+            "default": None,
+            "fp8_e4m3fn": torch.float8_e4m3fn,
+            "fp8_e5m2": torch.float8_e5m2,
+        }
+        clip_dtype = dtype_map[clip_dtype]
+
+        if type == "stable_cascade":
+            clip_type = comfy.sd.CLIPType.STABLE_CASCADE
+        elif type == "sd3":
+            clip_type = comfy.sd.CLIPType.SD3
+        elif type == "stable_audio":
+            clip_type = comfy.sd.CLIPType.STABLE_AUDIO
+        elif type == "mochi":
+            clip_type = comfy.sd.CLIPType.MOCHI
+        elif type == "ltxv":
+            clip_type = comfy.sd.CLIPType.LTXV
+        elif type == "pixart":
+            clip_type = comfy.sd.CLIPType.PIXART
+        elif type == "cosmos":
+            clip_type = comfy.sd.CLIPType.COSMOS
+        elif type == "lumina2":
+            clip_type = comfy.sd.CLIPType.LUMINA2
+        else:
+            clip_type = comfy.sd.CLIPType.STABLE_DIFFUSION
+
+        model_options = {}
+        if device == "cpu":
+            model_options["load_device"] = model_options["offload_device"] = torch.device("cpu")
+        model_options["dtype"] = clip_dtype
+
+        clip_path = folder_paths.get_full_path_or_raise("text_encoders", clip_name)
+        clip = comfy.sd.load_clip(ckpt_paths=[clip_path], embedding_directory=folder_paths.get_folder_paths("embeddings"), clip_type=clip_type, model_options=model_options)
+        return (clip,)
+
+class DualCLIPLoaderPX:
+    @classmethod
+    def INPUT_TYPES(s):
+        return {"required": { "clip_name1": (folder_paths.get_filename_list("text_encoders"), ),
+                              "clip_name2": (folder_paths.get_filename_list("text_encoders"), ),
+                              "type": (["sdxl", "sd3", "flux", "hunyuan_video"], ),
+                              "clip_dtype": (["default", "fp8_e4m3fn", "fp8_e5m2"],),
+                              },
+                "optional": {
+                              "device": (["default", "cpu"], {"advanced": True}),
+                             }}
+    RETURN_TYPES = ("CLIP",)
+    FUNCTION = "load_clip"
+
+    CATEGORY = "ComfyUI-pxtool"
+
+    DESCRIPTION = "[Recipes]\n\nsdxl: clip-l, clip-g\nsd3: clip-l, clip-g / clip-l, t5 / clip-g, t5\nflux: clip-l, t5"
+
+    def load_clip(self, clip_name1, clip_name2, type, device="default", clip_dtype="default"):
+        dtype_map = {
+            "default": None,
+            "fp8_e4m3fn": torch.float8_e4m3fn,
+            "fp8_e5m2": torch.float8_e5m2,
+        }
+        clip_path1 = folder_paths.get_full_path_or_raise("text_encoders", clip_name1)
+        clip_path2 = folder_paths.get_full_path_or_raise("text_encoders", clip_name2)
+        if type == "sdxl":
+            clip_type = comfy.sd.CLIPType.STABLE_DIFFUSION
+        elif type == "sd3":
+            clip_type = comfy.sd.CLIPType.SD3
+        elif type == "flux":
+            clip_type = comfy.sd.CLIPType.FLUX
+        elif type == "hunyuan_video":
+            clip_type = comfy.sd.CLIPType.HUNYUAN_VIDEO
+
+        model_options = {}
+        if device == "cpu":
+            model_options["load_device"] = model_options["offload_device"] = torch.device("cpu")
+        
+        model_options["dtype"] = dtype_map[clip_dtype]
+
+        clip = comfy.sd.load_clip(ckpt_paths=[clip_path1, clip_path2], embedding_directory=folder_paths.get_folder_paths("embeddings"), clip_type=clip_type, model_options=model_options)
+        return (clip,)
+
+
+class TripleCLIPLoaderPX:
+    @classmethod
+    def INPUT_TYPES(s):
+        return {"required": { "clip_name1": (folder_paths.get_filename_list("text_encoders"), ),
+                             "clip_name2": (folder_paths.get_filename_list("text_encoders"), ), 
+                             "clip_name3": (folder_paths.get_filename_list("text_encoders"), ),
+                             "clip_dtype": (["default", "fp8_e4m3fn", "fp8_e5m2"],),
+                             }}
+    RETURN_TYPES = ("CLIP",)
+    FUNCTION = "load_clip"
+
+    CATEGORY = "ComfyUI-pxtool"
+
+    DESCRIPTION = "[Recipes]\n\nsd3: clip-l, clip-g, t5"
+
+    def load_clip(self, clip_name1, clip_name2, clip_name3, clip_dtype="default"):
+        dtype_map = {
+            "default": None,
+            "fp8_e4m3fn": torch.float8_e4m3fn,
+            "fp8_e5m2": torch.float8_e5m2,
+        }
+        model_options = {}
+        model_options["dtype"] = dtype_map[clip_dtype]
+        clip_path1 = folder_paths.get_full_path_or_raise("text_encoders", clip_name1)
+        clip_path2 = folder_paths.get_full_path_or_raise("text_encoders", clip_name2)
+        clip_path3 = folder_paths.get_full_path_or_raise("text_encoders", clip_name3)
+        clip = comfy.sd.load_clip(ckpt_paths=[clip_path1, clip_path2, clip_path3], embedding_directory=folder_paths.get_folder_paths("embeddings"), model_options=model_options)
+        return (clip,)
+
+
+
+
 NODE_CLASS_loaders = {
     'CheckpointLoaderSimplePX': CheckpointLoaderSimplePX,
-    
+    "ControlNetLoaderPX": ControlNetLoaderPX,
+    "CLIPLoaderPX": CLIPLoaderPX,
+    "DualCLIPLoaderPX": DualCLIPLoaderPX,
+    "TripleCLIPLoaderPX": TripleCLIPLoaderPX,
 }
