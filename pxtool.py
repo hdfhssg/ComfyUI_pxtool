@@ -577,6 +577,19 @@ class RandomTag:
                 "girl_tag" : (["None","1girl", "2girls", "3girls", "4girls", "5girls","6+girls", "sisters", "1other", "multiple_girls"],),
                 "boy_tag": ([ "None","1boy", "2boys", "3boys", "4boys", "5boys","6+boys", "multiple_boys"],),
                 "multiple_tag": (["None","solo", "duo", "trio", "group"],),
+                # 镜头标签
+                "camera_tag": (["None","full body", "half body", "portrait", "close-up", "headshot", "bust", "waist-up", 
+                                "thigh-up", "knee-up", "feet", "hands", "back", "side view", "front view", "back view", "side",
+                                "focus on face", "focus on body", "focus on legs", "focus on feet", "focus on hands", "focus on back",
+                                ],),
+                # 背景标签
+                "background_tag": (["None", "simple background", "detailed background", "no background", "white background",
+                                    "interior", "exterior", "nature", "urban", "fantasy", "sci-fi", "holiday", 
+                                    "seasonal", "historical", "abstract", "pattern", "gradient", "texture", "sky", "clouds",
+                                    "water", "fire", "earth", "forest", "mountains", "cityscape", "architecture", "room", "house",
+                                     "street", "park", "beach", "forest", "mountains", "countryside", "desert", "space", "underwater",
+                                        "ruins", "castle", "temple", "shrine", "church", "cave", "school", "hospital", "office", "store",
+                                        "restaurant", "cafe", "bar", "club", "beach", "pool", "spa", "gym", "park", "forest", "mountains",],),
                 "prefix": ("BOOLEAN", {"default": True}),
                 "position": (["最后面", "最前面"],),
                 "random_tag": ("BOOLEAN", {"default": True}),
@@ -600,7 +613,8 @@ class RandomTag:
     CATEGORY = "ComfyUI-pxtool"
 
     def random_tag(self, prompt, file, min_count, seed, position, random_tag,year, random_weight, 
-                    max_tag, max_weights, min_tag, min_weights, prefix, girl_tag,boy_tag,multiple_tag,random_Tag_weight,tag_weight_seed,format_tags,frequencies_func):
+                    max_tag, max_weights, min_tag, min_weights, prefix, girl_tag,boy_tag,multiple_tag,
+                    random_Tag_weight,tag_weight_seed,format_tags,frequencies_func,camera_tag,background_tag):
         if multiple_tag != "None":
             prompt = prompt.replace("solo,", "")
             prompt = multiple_tag + "," + prompt
@@ -614,6 +628,10 @@ class RandomTag:
             prompt = year + "," + prompt
         if prefix:
             prompt = "masterpiece, best quality, newest, absurdres, highres, safe," + prompt
+        if camera_tag != "None":
+            prompt = camera_tag + "," + prompt
+        if background_tag != "None":
+            prompt = background_tag + "," + prompt
         tag =random_tag_csv(prompt,file,min_count,position, random_tag,random_weight,max_tag,max_weights,
                             min_tag,min_weights,seed,random_Tag_weight,tag_weight_seed,format_tags,frequencies_func)
         return remove_duplicate_tags(tag)
