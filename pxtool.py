@@ -5,11 +5,14 @@ from .ch_lib import model_action_civitai
 import re
 import csv
 from folder_paths import models_dir
+import folder_paths
+import pandas as pd
+from random import choice
 from pathlib import Path
 import numpy as np
 model_folder_path = Path(models_dir)
 root_dir = model_folder_path.parent
-root_dir = root_dir / "custom_nodes/ComfyUI_pxtool"
+root_dir = root_dir / "custom_nodes/ComfyUI_pxtool/CSV"
 
 
 def read_json(file_path):
@@ -78,8 +81,8 @@ def add_artist(chose_artists,artist_pref, random_artists, artist, min_weights=1,
         artist = f"artist:{artist}"
     if random_artist_weight:
         # 随机权重,值在0.5-1.5之间，正态分布，选在1附近的概率大，只要2位小数,1, 0.25
-        num = round(np.random.normal(1, 0.25), 2)
-        num = max(0.5, min(1.3, num))
+        num = round(np.random.normal(1, 0.2), 2)
+        num = max(0.5, min(1.2, num))
         artist = f"({artist}:{num})"
 
     if random_artists:
@@ -105,8 +108,8 @@ def add_Tag(chose_artists,random_weight, random_artists, artist, min_weights=1, 
         artist = format_str(artist)
     if random_artist_weight:
         # 随机权重,值在0.5-1.5之间，正态分布，选在1附近的概率大，只要2位小数
-        num = round(np.random.normal(1, 0.25), 2)
-        num = max(0.5, min(1.3, num))
+        num = round(np.random.normal(1, 0.2), 2)
+        num = max(0.5, min(1.2, num))
         artist = f"({artist}:{num})"
 
     if random_weight:
@@ -163,7 +166,7 @@ def random_artists_json(
     chose_artists = add_position(prompt,chose_artists, position)
     return chose_artists
 # 读取B列trigger以及C列count，只读取count>1000的，返回字典
-def read_csv(file_path,max_count=1000):  
+def read_csv(file_path,min_count=1000):  
     artists = {}  
     with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
         reader = csv.reader(f, delimiter=',', quotechar='"')
@@ -172,14 +175,41 @@ def read_csv(file_path,max_count=1000):
             _, trigger, count = line[:3]
             count = int(count)
             artists[trigger] = count
-            if count < max_count:
+            if count < min_count:
                 break
         return artists
 
 
+# 平滑函数
+def smooth(frequencies, frequencies_func="original",min_count=1000):
+    frequencies = np.array(frequencies)
+    if frequencies_func == "original":
+        frequencies = frequencies
+    elif frequencies_func == "log":
+        frequencies =  np.log(frequencies)
+    elif frequencies_func == "sqrt":
+        frequencies = np.sqrt(frequencies)
+    elif frequencies_func == "cbrt":
+        frequencies = np.cbrt(frequencies)
+    elif frequencies_func== "exp_log05":
+    # 取对数平滑frequencies
+        frequencies = np.exp(np.log(frequencies)**0.5)
+    elif frequencies_func== "exp_log07":
+    # 取对数平滑frequencies
+        frequencies = np.exp(np.log(frequencies)**0.7)
+    elif frequencies_func == "one":
+        frequencies = np.ones(len(frequencies))
+    elif frequencies_func == "sigmoid":
+        frequencies = 1/(1+np.exp(-frequencies/(100*min_count)))
+    elif frequencies_func == "tanh":
+        frequencies = np.tanh(frequencies/(100*min_count))
+
+
+    return frequencies
+
 def random_artists_csv(
     file,
-    max_count,
+    min_count,
     prompt,
     position,
     random_artists,
@@ -194,15 +224,17 @@ def random_artists_csv(
     random_artist_weight,
     artist_seed,
     format_artists=True,
+    frequencies_func="original",
 ):
     random.seed(seed)
     np.random.SeedSequence(artist_seed)
     medium = 0.5
     #artists: dict = read_csv("./custom_nodes/ComfyUI_pxtool/danbooru_artist.csv")
     full_path = os.path.join(root_dir, file)
-    artists_dict: dict = read_csv(full_path,max_count)
+    artists_dict: dict = read_csv(full_path,min_count)
     artists = list(artists_dict.keys())
     frequencies = list(artists_dict.values())
+    frequencies = smooth(frequencies, frequencies_func,min_count)
     chose_artists = ""
     for _ in range(random.randint(min_artists, max_artists)):
         while (artist := random.choices(artists, weights=frequencies)[0]) in chose_artists:
@@ -253,6 +285,75 @@ class CivitaiHelper:
         model_action_civitai.scan_model(scan_model_types, max_size_preview, skip_nsfw_preview, folders)
         return (str("扫描完成"),)
 
+
+class ArtistLoader:
+    @staticmethod
+    def load_artists_csv(single_artist_path: str, mixed_artists_path: str):
+        single_artist = []
+        mixed_artists = []
+        if not os.path.exists(single_artist_path) or not os.path.exists(mixed_artists_path):
+            print(f"""Error. No artists.csv found. Put your artists.csv in the custom_nodes-ComfyUI_Loader-CSV directory of ComfyUI. Then press "Refresh".
+                  Your current root directory is: {folder_paths.base_path}
+            """)
+            return single_artist, mixed_artists
+        try:
+            artists_df = pd.read_csv(single_artist_path)
+            single_artist = list(artists_df['画师'])
+            artists_df = pd.read_csv(mixed_artists_path)
+            mixed_artists = list(artists_df['画师串'])
+        except Exception as e:
+            print(f"""Error loading artists.csv. Make sure it is in the custom_nodes-ComfyUI_Loader-CSV directory of ComfyUI. Then press "Refresh".
+                    Your current root directory is: {folder_paths.base_path}
+                    Error: {e}
+            """)
+        return single_artist, mixed_artists
+        
+    @classmethod
+    def INPUT_TYPES(cls):
+        single_artists_path =os.path.join(root_dir, "1000SingleArtist.csv")
+        mixed_artists_path = os.path.join(root_dir, "300MixedArtists.csv")
+        cls.single_artist_list, cls.mixed_artists_list = cls.load_artists_csv(single_artists_path, mixed_artists_path)
+        return {
+            "required": {
+                "prompt": ("STRING", {"default": "1girl,"}),
+                "mode": (['random', 'random_single', 'random_mixed', 'none', 'single', 'mixed'], {"default": 'none'}),
+                "seed": ("INT", {"default": 0}),
+                "position": (["最后面", "最前面"],),
+            },
+            "optional": {
+                "single_artist": (cls.single_artist_list, {"default": ""}),
+                "mixed_artists": (cls.mixed_artists_list, {"default": ""}),
+            }
+        }
+
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("artist_tags",)
+    FUNCTION = "execute"
+    CATEGORY = "ComfyUI-pxtool"   
+
+    def execute(self, mode, single_artist, mixed_artists, seed, prompt, position):
+        tags = ''
+        if mode == 'random':
+            random.seed(seed)
+            tags = choice(self.single_artist_list + self.mixed_artists_list) + ","
+        elif mode == 'random_single':
+            random.seed(seed)
+            tags = choice(self.single_artist_list) + ","
+        elif mode == 'random_mixed':
+            random.seed(seed)
+            tags = choice(self.mixed_artists_list) + ","
+        elif mode == 'single':
+            tags = single_artist + ","
+        elif mode == 'mixed':
+            tags = mixed_artists
+        if position == '最后面':
+            tags = prompt  + tags
+        else:
+            tags = tags + prompt
+        return (tags,)
+
+
+
 # noob随机画师串生成器
 class RandomArtists:
     @classmethod
@@ -298,12 +399,13 @@ class RandomArtistsAdvanced:
             "required":{
                 "prompt": ("STRING", {"default": "1girl,"}),
                 "file": (["danbooru_artist.csv", "e621_artist.csv"],),
-                "max_count": ("INT", {"default": 1000, "min": 0, "max": 0xffffffffffffffff, "step": 100}),
+                "min_count": ("INT", {"default": 1000, "min": 0, "max": 0xffffffffffffffff, "step": 100}),
                 "seed": (
                     "INT", {"default": 43, "min": 0, "max": 0xffffffffffffffff}
                 ),
                 "position": (["最前面", "最后面"],),
                 "random_artists": ("BOOLEAN", {"default": True}),
+                "frequencies_func": (["original", "log", "sqrt", "cbrt", "exp_log05", "exp_log07", "one", "sigmoid", "tanh"],),
                 "random_artist_weight": ("BOOLEAN", {"default": False}),
                 "artist_weight_seed": ("INT", {"default": 43, "min": 0, "max": 0xffffffffffffffff}),
                 "year": (["None", "year 2022", "year 2023", "year 2024"],),
@@ -321,17 +423,17 @@ class RandomArtistsAdvanced:
     FUNCTION = "random_artists_advanced"
     RETURN_TYPES = ("STRING",)
     CATEGORY = "ComfyUI-pxtool"
-    def random_artists_advanced(self, prompt, file, max_count, seed, position, random_artists, year, 
+    def random_artists_advanced(self, prompt, file, min_count, seed, position, random_artists, year, 
                                 artist_pref, lower_weight, higher_weight, max_artists, max_weights, 
-                                min_artists, min_weights,random_artist_weight,artist_weight_seed,format_artists):
+                                min_artists, min_weights,random_artist_weight,artist_weight_seed,format_artists,frequencies_func):
         if year != "None":
             prompt = year + "," + prompt
-        tag = random_artists_csv(file, max_count, prompt, position, random_artists, artist_pref, 
+        tag = random_artists_csv(file, min_count, prompt, position, random_artists, artist_pref, 
                                  lower_weight, higher_weight, max_artists, max_weights, min_artists, 
-                                 min_weights, seed,random_artist_weight,artist_weight_seed,format_artists)
+                                 min_weights, seed,random_artist_weight,artist_weight_seed,format_artists,frequencies_func)
         return remove_duplicate_tags(tag)
 
-def read_character_csv(file_path, max_count=1000):
+def read_character_csv(file_path, min_count=1000):
     artists = {}
     with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
         reader = csv.reader(f, delimiter=',', quotechar='"')
@@ -340,7 +442,7 @@ def read_character_csv(file_path, max_count=1000):
             character, _, trigger, core_tags, count = line[:5]
             count = int(count)
             artists[character] = {"triggers": trigger, "count": count, "core_tags": core_tags}
-            if count <= max_count:
+            if count <= min_count:
                 break
         return artists
 
@@ -371,7 +473,7 @@ class DanbooruCharacterTag:
         else:
             return (artists1[character]["core_tags"]+","+artists1[character]["triggers"]+",",)
 
-def read_e621_character_csv(file_path, max_count=1000):
+def read_e621_character_csv(file_path, min_count=1000):
     artists = {}
     with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
         reader = csv.reader(f, delimiter=',', quotechar='"')
@@ -380,7 +482,7 @@ def read_e621_character_csv(file_path, max_count=1000):
             character, _, trigger, count = line[:4]
             count = int(count)
             artists[character] = {"triggers": trigger, "count": count}
-            if count <= max_count:
+            if count <= min_count:
                 break
         return artists
 
@@ -405,7 +507,7 @@ class E621CharacterTag:
         return (artists1[character]["triggers"]+",",)
 
 
-def read_tag_csv(file_path,max_count=1000):  
+def read_tag_csv(file_path,min_count=1000):  
     artists = {}  
     with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
         reader = csv.reader(f, delimiter=',', quotechar='"')
@@ -415,14 +517,14 @@ def read_tag_csv(file_path,max_count=1000):
             trigger, count = line
             count = int(count)
             artists[trigger] = count
-            if count < max_count:
+            if count < min_count:
                 break
         return artists
 
 def random_tag_csv(
     prompt,
     file,
-    max_count,
+    min_count,
     position,
     random_artists,
     random_weight,
@@ -434,13 +536,15 @@ def random_tag_csv(
     random_artist_weight,
     tag_seed,
     format_tags=True,
+    frequencies_func="original",
 ):
     random.seed(seed)
     np.random.SeedSequence(tag_seed)
     full_path = os.path.join(root_dir, file)
-    artists_dict: dict = read_tag_csv(full_path,max_count)
+    artists_dict: dict = read_tag_csv(full_path,min_count)
     artists = list(artists_dict.keys())
     frequencies = list(artists_dict.values())
+    frequencies = smooth(frequencies, frequencies_func,min_count)
     chose_artists = ""
     keywords = ["1girl", "2girls", "3girls", "4girls", "5girls","6+girls", "sisters", "1other", "multiple_girls","1boy", "2boys", "3boys", "4boys", "5boys","6+boys", "multiple_boys","solo", "duo", "trio", "group"]
 
@@ -461,7 +565,7 @@ class RandomTag:
             "required":{
                 "prompt": ("STRING", {"default": "1girl,"}),
                 "file": (["sfw_tags.csv","full_tags.csv", "nsfw_tags.csv"],),
-                "max_count": ("INT", {"default": 50000, "min": 0, "max": 0xffffffffffffffff, "step": 1000}),
+                "min_count": ("INT", {"default": 50000, "min": 0, "max": 0xffffffffffffffff, "step": 1000}),
                 "seed": (
                     "INT", {"default": 43, "min": 0, "max": 0xffffffffffffffff}
                 ),
@@ -471,6 +575,7 @@ class RandomTag:
                 "prefix": ("BOOLEAN", {"default": True}),
                 "position": (["最后面", "最前面"],),
                 "random_tag": ("BOOLEAN", {"default": True}),
+                "frequencies_func": (["original", "log", "sqrt", "cbrt", "exp_log05", "exp_log07", "one", "sigmoid", "tanh"],),
                 "random_Tag_weight": ("BOOLEAN", {"default": False}),
                 "random_weight": ("BOOLEAN", {"default": False}),
                 "tag_weight_seed": (
@@ -489,8 +594,8 @@ class RandomTag:
     RETURN_TYPES = ("STRING",)
     CATEGORY = "ComfyUI-pxtool"
 
-    def random_tag(self, prompt, file, max_count, seed, position, random_tag,year, random_weight, 
-                    max_tag, max_weights, min_tag, min_weights, prefix, girl_tag,boy_tag,multiple_tag,random_Tag_weight,tag_weight_seed,format_tags):
+    def random_tag(self, prompt, file, min_count, seed, position, random_tag,year, random_weight, 
+                    max_tag, max_weights, min_tag, min_weights, prefix, girl_tag,boy_tag,multiple_tag,random_Tag_weight,tag_weight_seed,format_tags,frequencies_func):
         if multiple_tag != "None":
             prompt = prompt.replace("solo,", "")
             prompt = multiple_tag + "," + prompt
@@ -504,8 +609,8 @@ class RandomTag:
             prompt = year + "," + prompt
         if prefix:
             prompt = "masterpiece, best quality, newest, absurdres, highres, safe," + prompt
-        tag =random_tag_csv(prompt,file,max_count,position, random_tag,random_weight,max_tag,max_weights,
-                            min_tag,min_weights,seed,random_Tag_weight,tag_weight_seed,format_tags)
+        tag =random_tag_csv(prompt,file,min_count,position, random_tag,random_weight,max_tag,max_weights,
+                            min_tag,min_weights,seed,random_Tag_weight,tag_weight_seed,format_tags,frequencies_func)
         return remove_duplicate_tags(tag)
 
 # 质量标签添加器，masterpiece > best quality > high quality / good quality > normal quality > low quality / bad quality > worst quality
@@ -625,6 +730,7 @@ class PX_Seed:
 NODE_CLASS_MAPPINGS = {
     "CivitaiHelper": CivitaiHelper,
     "RandomArtists": RandomArtists,
+    "ArtistLoader": ArtistLoader,
     "DanbooruCharacterTag": DanbooruCharacterTag,
     "E621CharacterTag": E621CharacterTag,
     "RandomTag": RandomTag,
