@@ -19,6 +19,7 @@
 - 参考 [noob-wiki 数据集](https://huggingface.co/datasets/Laxhar/noob-wiki/tree/main) 自行实现了随机生成相关提示词的功能
 - 实现了能够fp8剪枝的Checkpoint加载器，以减少用户一些场景下的显存占用
 - 复制修改[deepseek](https://github.com/ziwang-com/comfyui-deepseek-r1)、[Janus-Pro](https://github.com/CY-CHENYUE/ComfyUI-Janus-Pro)部分节点
+- 复制修改[ComfyUI-Artist-Selector](https://github.com/ReBeating/ComfyUI-Artist-Selector.git)节点
 
 **English**
 This is a custom plugin node for ComfyUI that modifies and extends some features from existing projects. The main implementations include:
@@ -26,6 +27,7 @@ This is a custom plugin node for ComfyUI that modifies and extends some features
 - Implementing a feature to randomly generate related prompt words by referencing the [noob-wiki dataset](https://huggingface.co/datasets/Laxhar/noob-wiki/tree/main)
 - Implementing a Checkpoint loader that can perform fp8 pruning to reduce memory usage in some user scenarios
 - Copied and modified [deepseek](https://github.com/ziwang-com/comfyui-deepseek-r1) and [Janus-Pro](https://github.com/CY-CHENYUE/ComfyUI-Janus-Pro) nodes
+- Copied and modified [ComfyUI-Artist-Selector](https://github.com/ReBeating/ComfyUI-Artist-Selector.git) node
 
 ## 特点 / Features
 
