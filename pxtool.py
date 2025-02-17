@@ -319,7 +319,7 @@ class ArtistLoader:
                 "prompt": ("STRING", {"default": "1girl,"}),
                 "mode": (['random', 'random_single', 'random_mixed', 'none', 'single', 'mixed'], {"default": 'none'}),
                 "seed": ("INT", {"default": 0}),
-                "position": (["最后面", "最前面"],),
+                "position": (["最前面","最后面" ],),
             },
             "optional": {
                 "single_artist": (cls.single_artist_list, {"default": ""}),
