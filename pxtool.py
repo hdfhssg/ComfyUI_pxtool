@@ -626,12 +626,12 @@ class RandomTag:
             prompt = girl_tag + "," + prompt
         if year != "None":
             prompt = year + "," + prompt
-        if prefix:
-            prompt = "masterpiece, best quality, newest, absurdres, highres, safe," + prompt
         if camera_tag != "None":
             prompt = camera_tag + "," + prompt
         if background_tag != "None":
             prompt = background_tag + "," + prompt
+        if prefix:
+            prompt = "masterpiece, best quality, newest, absurdres, highres, safe," + prompt
         tag =random_tag_csv(prompt,file,min_count,position, random_tag,random_weight,max_tag,max_weights,
                             min_tag,min_weights,seed,random_Tag_weight,tag_weight_seed,format_tags,frequencies_func)
         return remove_duplicate_tags(tag)
