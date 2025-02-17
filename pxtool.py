@@ -177,7 +177,8 @@ def read_csv(file_path,min_count=1000):
             artists[trigger] = count
             if count < min_count:
                 break
-        return artists
+    f.close()
+    return artists
 
 
 # 平滑函数
@@ -444,7 +445,8 @@ def read_character_csv(file_path, min_count=1000):
             artists[character] = {"triggers": trigger, "count": count, "core_tags": core_tags}
             if count <= min_count:
                 break
-        return artists
+    f.close()
+    return artists
 
 
 # 角色串tag生成器
@@ -484,7 +486,8 @@ def read_e621_character_csv(file_path, min_count=1000):
             artists[character] = {"triggers": trigger, "count": count}
             if count <= min_count:
                 break
-        return artists
+    f.close()
+    return artists
 
 # 角色串tag生成器
 class E621CharacterTag:
@@ -519,7 +522,9 @@ def read_tag_csv(file_path,min_count=1000):
             artists[trigger] = count
             if count < min_count:
                 break
-        return artists
+    # 关闭文件
+    f.close()
+    return artists
 
 def random_tag_csv(
     prompt,
@@ -653,7 +658,8 @@ def read_txt(file_path):
     with open(file_path, "r") as f:
         data = f.read()
         data = data.split("\n")
-        return data
+    f.close()
+    return data
 
 # 负面提示词生成器
 class NegativeTag:
