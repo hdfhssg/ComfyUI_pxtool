@@ -34,7 +34,7 @@ This is a custom plugin node for ComfyUI that modifies and extends some features
 **中文**
 - **功能复现：** 在 ComfyUI 环境中成功复现了[Stable-Diffusion-Webui-Civitai-Helper](https://github.com/zixaphir/Stable-Diffusion-Webui-Civitai-Helper)项目中的扫描模型下载预览图的功能，并修改实现了扫描时会扫描下载预览视频的功能
 - **提示词生成：** 按照 [noob-wiki 数据集](https://huggingface.co/datasets/Laxhar/noob-wiki/tree/main) 实现了随机生成相关提示词的功能，随机添加画师串，并随机添加权重等功能，增强了用户体验
-- **checkpoint加载器：** 实现了能够fp8剪枝的Checkpoint加载器，支持FP8精度英伟达的小显卡用户(6GB显存左右甚至更小的4G显存)也可以运行SDXL模型，避免出现显存不足的错误，虽然降低了精度，生成的图片质量会降低，但是在一些场景下可以接受,unet以及clip进行FP8剪枝对比如下：
+- **checkpoint加载器：** 实现了能够fp8剪枝的Checkpoint加载器，支持FP8精度英伟达的小显卡用户(6GB显存左右甚至更小的4G显存)也可以运行SDXL模型，避免出现显存不足的错误，虽然降低了精度，生成的图片质量会降低，但是在一些场景下可以接受，unet以及clip进行FP8剪枝对比如下：
 
 **English**
 - **Feature Reproduction:** Successfully reproduced the model preview image download feature from the [Stable-Diffusion-Webui-Civitai-Helper](https://github.com/zixaphir/Stable-Diffusion-Webui-Civitai-Helper) project within the ComfyUI environment, and modified the implementation to download preview videos during scanning
