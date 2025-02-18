@@ -88,7 +88,6 @@ class JanusImageUnderstanding:
             images=[pil_image], 
             force_batchify=True
         ).to(device = model.device, dtype = model.dtype)
-        print(prepare_inputs)
         inputs_embeds = model.prepare_inputs_embeds(**prepare_inputs)
 
         outputs = model.language_model.generate(
