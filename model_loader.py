@@ -12,7 +12,7 @@ class JanusModelLoader:
         return {
             "required": {
                 "model_name": (["deepseek-ai/Janus-Pro-1B", "deepseek-ai/Janus-Pro-7B"],),
-                "model_dtype": (["default", "fp16", "bf16", "fp8_e4m3fn", "fp8_e5m2"],),
+                "model_dtype": (["default", "fp16", "bf16"],),
             },
         }
     
