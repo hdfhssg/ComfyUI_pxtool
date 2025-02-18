@@ -103,7 +103,7 @@ class JanusImageUnderstanding:
             top_p=top_p,
             use_cache=True,
         )
-
+        torch.cuda.empty_cache()
         answer = processor.tokenizer.decode(outputs[0].cpu().tolist(), skip_special_tokens=True)
         
         return (answer,)

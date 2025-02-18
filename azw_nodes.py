@@ -140,7 +140,7 @@ class DeepGen:
         ]
 
         response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
-
+        torch.cuda.empty_cache()
         if return_thought:
             return (response, )
         else:
