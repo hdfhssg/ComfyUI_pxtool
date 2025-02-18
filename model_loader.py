@@ -31,7 +31,7 @@ class JanusModelLoader:
 
         device = "cuda" if torch.cuda.is_available() else "cpu"
         dtype_map = {
-            "default": None,
+            "default": torch.float16,
             "fp8_e4m3fn": torch.float8_e4m3fn,
             "fp8_e5m2": torch.float8_e5m2,
             "fp16": torch.float16,

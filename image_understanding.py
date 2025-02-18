@@ -87,7 +87,7 @@ class JanusImageUnderstanding:
             conversations=conversation, 
             images=[pil_image], 
             force_batchify=True
-        ).to(model.device)
+        ).to(device = model.device, dtype = model.dtype)
 
         inputs_embeds = model.prepare_inputs_embeds(**prepare_inputs)
 
