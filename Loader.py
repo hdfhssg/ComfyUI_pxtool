@@ -228,6 +228,146 @@ class ControlNetLoaderPX:
         controlnet_path = folder_paths.get_full_path_or_raise("controlnet", control_net_name)
         controlnet = load_controlnet(controlnet_path,model_options=model_options)
         return (controlnet,)
+import safetensors.torch
+ALWAYS_SAFE_LOAD = False
+def load_torch_file(ckpt, safe_load=False, device=None, dtype_option="default"):
+    """加载 PyTorch 模型文件并支持 FP8 格式转换
+    
+    参数:
+        ckpt:        模型文件路径
+        safe_load:   是否启用安全加载 (防止恶意代码执行)
+        device:      目标设备 (默认自动设为 CPU)
+        dtype_option: 数据类型选项 ["default", "fp8_e4m3fn", "fp8_e5m2"]
+    
+    返回:
+        模型状态字典 (state_dict)
+    """
+    # 初始化数据类型映射
+    dtype_map = {
+        "default": None,
+        "fp8_e4m3fn": torch.float8_e4m3fn,
+        "fp8_e5m2": torch.float8_e5m2,
+    }
+    
+    # 验证 dtype 选项有效性
+    if dtype_option not in dtype_map:
+        raise ValueError(f"Invalid dtype_option: {dtype_option}. Valid options: {list(dtype_map.keys())}")
+    dtype = dtype_map[dtype_option]
+
+    # 初始化设备
+    if device is None:
+        device = torch.device("cpu")
+
+    # 加载 safetensors 格式
+    if ckpt.lower().endswith((".safetensors", ".sft")):
+        try:
+            sd = safetensors.torch.load_file(ckpt, device=device.type)
+        except Exception as e:
+            error_handlers = {
+                "HeaderTooLarge": "文件可能已损坏或非 safetensors 格式",
+                "MetadataIncompleteBuffer": "文件不完整或下载错误"
+            }
+            for err_key, err_msg in error_handlers.items():
+                if err_key in str(e.args):
+                    raise ValueError(f"{err_msg}\n文件路径: {ckpt}") from e
+            raise
+    # 加载普通 PyTorch 格式
+    else:
+        load_args = {"map_location": device}
+        if safe_load or getattr(comfy.utils, "ALWAYS_SAFE_LOAD", False):
+            load_args["weights_only"] = True
+        else:
+            load_args["pickle_module"] = comfy.checkpoint_pickle
+        
+        pl_sd = torch.load(ckpt, **load_args)
+        
+        # 提取状态字典
+        if "state_dict" in pl_sd:
+            sd = pl_sd["state_dict"]
+        else:
+            sd = pl_sd.get(list(pl_sd.keys())[0], pl_sd) if len(pl_sd) == 1 else pl_sd
+        
+        # 记录训练步数
+        if "global_step" in pl_sd:
+            logging.debug(f"Global Step: {pl_sd['global_step']}")
+
+    # 执行数据类型转换
+    if dtype is not None:
+        for key in sd:
+            tensor = sd[key]
+            if isinstance(tensor, torch.Tensor):
+                # 保留设备信息同时转换类型
+                sd[key] = tensor.to(device=device, dtype=dtype)
+
+    return sd
+
+
+def ipadapter_model_loader(file, dtype_option="default"):
+    # 定义数据类型映射
+    dtype_map = {
+        "default": None,
+        "fp8_e4m3fn": torch.float8_e4m3fn,
+        "fp8_e5m2": torch.float8_e5m2,
+    }
+    
+    # 验证 dtype 选项有效性
+    if dtype_option not in dtype_map:
+        raise ValueError(f"Invalid dtype_option: {dtype_option}. Valid options are: {list(dtype_map.keys())}")
+    dtype = dtype_map[dtype_option]
+
+    # 加载原始模型
+    model = comfy.utils.load_torch_file(file, safe_load=True)
+
+    # 处理 safetensors 格式
+    if file.lower().endswith(".safetensors"):
+        st_model = {"image_proj": {}, "ip_adapter": {}}
+        for key in model.keys():
+            if key.startswith("image_proj."):
+                st_model["image_proj"][key.replace("image_proj.", "")] = model[key]
+            elif key.startswith("ip_adapter."):
+                st_model["ip_adapter"][key.replace("ip_adapter.", "")] = model[key]
+            elif key.startswith("adapter_modules."):
+                st_model["ip_adapter"][key.replace("adapter_modules.", "")] = model[key]
+        model = st_model
+        del st_model
+    # 处理普通权重格式
+    elif "adapter_modules" in model.keys():
+        model["ip_adapter"] = model.pop("adapter_modules")
+
+    # 有效性检查
+    if not "ip_adapter" in model.keys() or not model["ip_adapter"]:
+        raise Exception("invalid IPAdapter model {}".format(file))
+
+    # 添加版本标识
+    if 'plusv2' in file.lower():
+        model["faceidplusv2"] = True
+    if 'unnorm' in file.lower():
+        model["portraitunnorm"] = True
+
+    # 执行数据类型转换
+    if dtype is not None:
+        for component in ["image_proj", "ip_adapter"]:
+            if component in model:
+                for key in model[component]:
+                    tensor = model[component][key]
+                    model[component][key] = tensor.to(dtype)
+
+    return model
+
+class IPAdapterModelLoaderPX:
+    @classmethod
+    def INPUT_TYPES(s):
+        return {"required": { "ipadapter_file": (folder_paths.get_filename_list("ipadapter"), ),
+                "ipadapter_dtype": (["default", "fp8_e4m3fn", "fp8_e5m2"],),}
+                }
+
+    RETURN_TYPES = ("IPADAPTER",)
+    FUNCTION = "load_ipadapter_model"
+    CATEGORY = "ComfyUI-pxtool"
+
+    def load_ipadapter_model(self, ipadapter_file, ipadapter_dtype):
+        ipadapter_file = folder_paths.get_full_path("ipadapter", ipadapter_file)
+        return (ipadapter_model_loader(ipadapter_file, ipadapter_dtype),)
 
 class CLIPLoaderPX:
     @classmethod
@@ -362,6 +502,7 @@ class TripleCLIPLoaderPX:
 NODE_CLASS_loaders = {
     'CheckpointLoaderSimplePX': CheckpointLoaderSimplePX,
     "ControlNetLoaderPX": ControlNetLoaderPX,
+    "IPAdapterModelLoaderPX": IPAdapterModelLoaderPX,
     "CLIPLoaderPX": CLIPLoaderPX,
     "DualCLIPLoaderPX": DualCLIPLoaderPX,
     "TripleCLIPLoaderPX": TripleCLIPLoaderPX,
