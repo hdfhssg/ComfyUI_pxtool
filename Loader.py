@@ -159,6 +159,7 @@ class CheckpointLoaderSimplePX:
             }
         }
     RETURN_TYPES = ("MODEL", "CLIP", "VAE")
+    RETURN_NAMES = ("模型", "CLIP", "VAE")
     OUTPUT_TOOLTIPS = ("The model used for denoising latents.",
                        "The CLIP model used for encoding text prompts.",
                        "The VAE model used for encoding and decoding images to and from latent space.")
@@ -362,6 +363,7 @@ class IPAdapterModelLoaderPX:
                 }
 
     RETURN_TYPES = ("IPADAPTER",)
+    RETURN_NAMES = ("IPAdapter",)
     FUNCTION = "load_ipadapter_model"
     CATEGORY = "ComfyUI-pxtool"
 

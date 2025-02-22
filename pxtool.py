@@ -268,6 +268,7 @@ class CivitaiHelper:
     
     FUNCTION = "civitai_helper"
     RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("civitai_helper",)
     OUTPUT_NODE = True
     CATEGORY = "ComfyUI-pxtool"
 
@@ -383,6 +384,7 @@ class RandomArtists:
     
     FUNCTION = "random_artists"
     RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("random_artists",)
     CATEGORY = "ComfyUI-pxtool"
 
     def random_artists(self, prompt, position, random_artists, year, artist_pref, lower_weight, higher_weight, 
@@ -423,6 +425,7 @@ class RandomArtistsAdvanced:
     
     FUNCTION = "random_artists_advanced"
     RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("random_artists",)
     CATEGORY = "ComfyUI-pxtool"
     def random_artists_advanced(self, prompt, file, min_count, seed, position, random_artists, year, 
                                 artist_pref, lower_weight, higher_weight, max_artists, max_weights, 
@@ -464,6 +467,7 @@ class DanbooruCharacterTag:
     
     FUNCTION = "character_tag"
     RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("character_tag",)
     CATEGORY = "ComfyUI-pxtool"
 
     def character_tag(self, character, return_type):
@@ -503,6 +507,7 @@ class E621CharacterTag:
     
     FUNCTION = "character_tag"
     RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("character_tag",)
     CATEGORY = "ComfyUI-pxtool"
 
     def character_tag(self, character):
@@ -610,6 +615,7 @@ class RandomTag:
 
     FUNCTION = "random_tag"
     RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("random_tag",)
     CATEGORY = "ComfyUI-pxtool"
 
     def random_tag(self, prompt, file, min_count, seed, position, random_tag,year, random_weight, 
@@ -653,6 +659,7 @@ class QualityTag:
     
     FUNCTION = "quality_tag"
     RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("quality_tag",)
     CATEGORY = "ComfyUI-pxtool"
 
     def quality_tag(self, prompt,quality, safe, aesthetic, time, position):
@@ -710,6 +717,7 @@ class NegativeTag:
     
     FUNCTION = "negative_tag"
     RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("negative_tag",)
     CATEGORY = "ComfyUI-pxtool"
 
     def negative_tag(self, prompt, seed,random_weight, random_tag, old, max_tag, max_weights, min_tag, 
