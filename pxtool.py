@@ -763,3 +763,17 @@ NODE_CLASS_MAPPINGS = {
     "NegativeTag": NegativeTag,
     "PX_Seed": PX_Seed,
 }
+
+NODE_DISPLAY_NAME_MAPPINGS = {
+    "CivitaiHelper": "C站助手",
+    "RandomArtists": "随机画师串生成器",
+    "ArtistLoader": "画师串生成器",
+    "DanbooruCharacterTag": "Danbooru角色tag生成器",
+    "E621CharacterTag": "E621角色串tag生成器",
+    "RandomTag": "随机tag生成器",
+    "RandomArtistsAdvanced": "随机画师串生成器（高级）",
+    "QualityTag": "质量tag生成器",
+    "NegativeTag": "负面tag生成器",
+    "PX_Seed": "种子生成器",
+}
+

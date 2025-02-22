@@ -156,7 +156,12 @@ NODE_CLASS_MAPPINGS2 = {
     #
     
 }
-
+NODE_DISPLAY_NAME_MAPPINGS2 = {
+    #
+    'deep_load': 'deepseek加载器',
+    'deep_gen': 'deepseek生成器',
+    #
+}
 
 #----------
 #
