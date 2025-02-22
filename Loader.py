@@ -508,7 +508,7 @@ NODE_CLASS_loaders = {
     "TripleCLIPLoaderPX": TripleCLIPLoaderPX,
 }
 NODE_DISPLAY_NAME_MAPPINGS4 = {
-    'CheckpointLoaderSimplePX': '模型加载器FP8',
+    'CheckpointLoaderSimplePX': 'Checkpoint模型加载器FP8',
     "ControlNetLoaderPX": "ControlNet加载器FP8",
     "IPAdapterModelLoaderPX": "IPAdapter加载器FP8",
     "CLIPLoaderPX": "CLIP加载器FP8",
