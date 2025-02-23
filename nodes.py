@@ -14,7 +14,7 @@ import folder_paths
 from folder_paths import models_dir
 model_folder_path = Path(models_dir)
 root_dir = model_folder_path.parent
-root_dir = root_dir / "custom_nodes/comfyui-CharacterSelect/JSON"
+root_dir = root_dir / "custom_nodes/ComfyUI_pxtool/JSON"
 import node_helpers
 import re
 def format_str(string):
