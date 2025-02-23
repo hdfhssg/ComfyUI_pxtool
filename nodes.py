@@ -487,16 +487,13 @@ class CharacterSelectLoader:
         else:
             selected_action = ""
         if random_action:
-            selected_action = random.choice(list(self.hm_config_2_component.values()))
-        
-        prompt = prompt  + format_str(selected_character) + ", " + selected_action + ", "
-        prompt = self.func_setting(prompt,nsfw,more_detail,less_detail,quality,character_enhance)
+            selected_action = random.choice(list(self.hm_config_2_component.values())) + ", "
         if format_tags:
-            prompt = prompt
-            prompt = remove_duplicate_tags((prompt,))[0]
+            selected_character = format_str(selected_character) + ", "
+        prompt = prompt  + selected_character + selected_action 
+        prompt = self.func_setting(prompt,nsfw,more_detail,less_detail,quality,character_enhance)
+        prompt = remove_duplicate_tags((prompt,))[0]
         result = self.hm1_setting(character, prompt)
-        # result[0] 是<PIL.WebPImagePlugin.WebPImageFile image mode=RGB size=208x304>，直接显示
-        #result[0].show()
         negative_prompt = self.settings["neg_prompt"]
         image = self.pil2tensor(result[0])
         if ai_fill:
