@@ -329,7 +329,7 @@ class CharacterSelectLoader:
             print(f"错误：复制过程发成错误- {str(e)}")
             return False
     
-    def func_setting(self, oldprompt,fv0,fv1,fv2,fv3,fv4):
+    def func_setting(self, oldprompt,fv0,fv1):
         self.allfuncprompt = ""
         oldprompt = oldprompt.replace(self.settings["nsfw"], "")
         oldprompt = oldprompt.replace(self.settings["more_detail"], "")
@@ -339,13 +339,7 @@ class CharacterSelectLoader:
         if(fv0):
             self.allfuncprompt += self.settings["nsfw"]
         if(fv1):
-            self.allfuncprompt += self.settings["more_detail"]
-        if(fv2):
-            self.allfuncprompt += self.settings["less_detail"]
-        if(fv3):
             self.allfuncprompt += self.settings["quality"]
-        if(fv4):
-            self.allfuncprompt += self.settings["character_enhance"]
         oldprompt += self.allfuncprompt
         return oldprompt
     def base64_to_pil(self, base64_str):
@@ -448,10 +442,7 @@ class CharacterSelectLoader:
                 "random_character": ("BOOLEAN", {"default": False}),
                 "random_action": ("BOOLEAN", {"default": False}),
                 "nsfw": ("BOOLEAN", {"default": False}),
-                "more_detail": ("BOOLEAN", {"default": False}),
-                "less_detail": ("BOOLEAN", {"default": False}),
                 "quality": ("BOOLEAN", {"default": False}),
-                "character_enhance": ("BOOLEAN", {"default": False}),
                 "format_tags": ("BOOLEAN", {"default": True}),
                 # ai填充
                 "ai_fill": ("BOOLEAN", {"default": False}),
@@ -465,8 +456,8 @@ class CharacterSelectLoader:
     CATEGORY = "ComfyUI-pxtool"
 
 
-    def execute(self, character, character_zh, action, seed, random_character, random_action, nsfw, more_detail, less_detail, 
-                quality, character_enhance, prompt, format_tags, text,ai_fill):
+    def execute(self, character, character_zh, action, seed, random_character, random_action, nsfw,  
+                quality,  prompt, format_tags, text,ai_fill):
         # 初始化随机种子
         random.seed(seed)
         # 处理角色选择逻辑
@@ -491,7 +482,7 @@ class CharacterSelectLoader:
         if format_tags:
             selected_character = format_str(selected_character) + ", "
         prompt = prompt  + selected_character + selected_action 
-        prompt = self.func_setting(prompt,nsfw,more_detail,less_detail,quality,character_enhance)
+        prompt = self.func_setting(prompt,nsfw,quality)
         prompt = remove_duplicate_tags((prompt,))[0]
         result = self.hm1_setting(character, prompt)
         negative_prompt = self.settings["neg_prompt"]
