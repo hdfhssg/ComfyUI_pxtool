@@ -500,6 +500,6 @@ class CharacterSelectLoader:
         prompt = self.cprompt_send(prompt, text)
         return (prompt, negative_prompt, image)
 
-NODE_CLASS_MAPPINGS = {"CharacterSelectLoader": CharacterSelectLoader}
+NODE_CLASS_MAPPINGS5 = {"CharacterSelectLoader": CharacterSelectLoader}
 
-NODE_DISPLAY_NAME_MAPPINGS = {"CharacterSelectLoader": "角色选择器"}
+NODE_DISPLAY_NAME_MAPPINGS5 = {"CharacterSelectLoader": "角色选择器"}
