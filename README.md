@@ -16,6 +16,7 @@
 **中文**
 这是我个人使用的插件节点，在原有项目的基础上修改并扩展了部分功能。主要实现了以下内容：
 - 在 ComfyUI 中重新复现 [Stable-Diffusion-Webui-Civitai-Helper](https://github.com/zixaphir/Stable-Diffusion-Webui-Civitai-Helper) 项目中的部分功能
+- 在 ComfyUI 中重新复现了 [WAI-NSFW-illustrious-character-select](https://github.com/lanner0403/WAI-NSFW-illustrious-character-select) 项目中的部分功能
 - 参考 [noob-wiki 数据集](https://huggingface.co/datasets/Laxhar/noob-wiki/tree/main) 自行实现了随机生成相关提示词的功能
 - 实现了能够fp8剪枝的Checkpoint加载器，以减少用户一些场景下的显存占用
 - 复制修改[deepseek](https://github.com/ziwang-com/comfyui-deepseek-r1)、[Janus-Pro](https://github.com/CY-CHENYUE/ComfyUI-Janus-Pro)部分节点
@@ -24,6 +25,7 @@
 **English**
 This is a custom plugin node for ComfyUI that modifies and extends some features from existing projects. The main implementations include:
 - Reproducing some features of the [Stable-Diffusion-Webui-Civitai-Helper](https://github.com/zixaphir/Stable-Diffusion-Webui-Civitai-Helper) project within ComfyUI
+- Reproducing some features of the [WAI-NSFW-illustrious-character-select](https://github.com/lanner0403/WAI-NSFW-illustrious-character-select) project within ComfyUI
 - Implementing a feature to randomly generate related prompt words by referencing the [noob-wiki dataset](https://huggingface.co/datasets/Laxhar/noob-wiki/tree/main)
 - Implementing a Checkpoint loader that can perform fp8 pruning to reduce memory usage in some user scenarios
 - Copied and modified [deepseek](https://github.com/ziwang-com/comfyui-deepseek-r1) and [Janus-Pro](https://github.com/CY-CHENYUE/ComfyUI-Janus-Pro) nodes
