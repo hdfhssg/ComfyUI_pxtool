@@ -442,7 +442,7 @@ class CharacterSelectLoader:
                 "random_character": ("BOOLEAN", {"default": False}),
                 "random_action": ("BOOLEAN", {"default": False}),
                 "nsfw": ("BOOLEAN", {"default": False}),
-                "quality": ("BOOLEAN", {"default": False}),
+                "quality": ("BOOLEAN", {"default": True}),
                 "format_tags": ("BOOLEAN", {"default": True}),
                 # ai填充
                 "ai_fill": ("BOOLEAN", {"default": False}),
