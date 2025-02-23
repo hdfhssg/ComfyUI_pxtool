@@ -453,6 +453,8 @@ class CharacterSelectLoader:
                 "quality": ("BOOLEAN", {"default": False}),
                 "character_enhance": ("BOOLEAN", {"default": False}),
                 "format_tags": ("BOOLEAN", {"default": True}),
+                # ai填充
+                "ai_fill": ("BOOLEAN", {"default": False}),
                 "text": ("STRING", {"multiline": True, "placeholder": "Input text"}),
             }
         }
@@ -464,7 +466,7 @@ class CharacterSelectLoader:
 
 
     def execute(self, character, character_zh, action, seed, random_character, random_action, nsfw, more_detail, less_detail, 
-                quality, character_enhance, prompt, format_tags, text):
+                quality, character_enhance, prompt, format_tags, text,ai_fill):
         # 初始化随机种子
         random.seed(seed)
         # 处理角色选择逻辑
@@ -497,7 +499,8 @@ class CharacterSelectLoader:
         #result[0].show()
         negative_prompt = self.settings["neg_prompt"]
         image = self.pil2tensor(result[0])
-        prompt = self.cprompt_send(prompt, text)
+        if ai_fill:
+            prompt = self.cprompt_send(prompt, text)
         return (prompt, negative_prompt, image)
 
 NODE_CLASS_MAPPINGS5 = {"CharacterSelectLoader": CharacterSelectLoader}
