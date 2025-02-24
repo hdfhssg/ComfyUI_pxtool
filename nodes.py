@@ -481,9 +481,11 @@ class CharacterSelectLoader:
         else:
             selected_action = ""
         if random_action:
-            selected_action = random.choice(list(self.hm_config_2_component.values())) + ", "
+            selected_action = random.choice(list(self.hm_config_2_component.values())) 
+            selected_action =selected_action + ","
         if format_tags:
-            selected_character = format_str(selected_character) + ", "
+            selected_character = format_str(selected_character) 
+            selected_character= selected_character + ", "
         prompt = prompt  + selected_character + selected_action 
         prompt = self.func_setting(prompt,nsfw,quality)
         prompt = remove_duplicate_tags((prompt,))[0]
