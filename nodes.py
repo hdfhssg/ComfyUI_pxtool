@@ -451,8 +451,8 @@ class CharacterSelectLoader:
         }
     
     FUNCTION = "execute"
-    RETURN_TYPES = ("STRING","STRING","IMAGE",)
-    RETURN_NAMES = ("prompt","negative_prompt","image",)
+    RETURN_TYPES = ("STRING","STRING","STRING","STRING","STRING","IMAGE",)
+    RETURN_NAMES = ("prompt","negative_prompt","character1","character2","character3","image")
     CATEGORY = "ComfyUI-pxtool"
 
 
@@ -463,11 +463,11 @@ class CharacterSelectLoader:
         # 处理角色选择逻辑
         selected_character = None
         if character != "None" and character != "random":
-            selected_character = self.hm_config_1_component[character]
+            selected_character = self.hm_config_1_component[character]+","
         if character_zh != "None":
-            selected_character = self.localizations_component[character_zh]
+            selected_character = self.localizations_component[character_zh] + ","
         if random_character or (selected_character == "random"):
-            selected_character = random.choice(list(self.hm_config_1_component.values()))
+            selected_character = random.choice(list(self.hm_config_1_component.values())) + ","
         if selected_character is None:
             selected_character = ""
         else:
@@ -482,10 +482,8 @@ class CharacterSelectLoader:
             selected_action = ""
         if random_action:
             selected_action = random.choice(list(self.hm_config_2_component.values())) 
-            selected_action =selected_action + ","
         if format_tags:
             selected_character = format_str(selected_character) 
-            selected_character= selected_character + ", "
         prompt = prompt  + selected_character + selected_action 
         prompt = self.func_setting(prompt,nsfw,quality)
         prompt = remove_duplicate_tags((prompt,))[0]
@@ -494,7 +492,17 @@ class CharacterSelectLoader:
         image = self.pil2tensor(result[0])
         if ai_fill:
             prompt = self.cprompt_send(prompt, text)
-        return (prompt, negative_prompt, image)
+        # 将selected_character以，分割，返回成character1，character2，character3,并加回‘，’
+        if selected_character!= "":
+            character1, character2, character3 = selected_character.split(",")[:3]
+            character1 = character1 + ","
+            character2 = character2 + ","
+            character3 = character3 + ","
+        else:
+            character1 = ""
+            character2 = ""
+            character3 = ""
+        return (prompt, negative_prompt, character1, character2, character3, image)
 
 NODE_CLASS_MAPPINGS5 = {"CharacterSelectLoader": CharacterSelectLoader}
 
