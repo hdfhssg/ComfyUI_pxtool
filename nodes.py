@@ -492,9 +492,15 @@ class CharacterSelectLoader:
         # 将selected_character以，分割，返回成character1，character2，character3,并加回‘，’
         if selected_character!= "":
             character1, character2, character3 = selected_character.split(",")[:3]
-            character1 = character1 + ","
-            character2 = character2 + ","
-            character3 = character3 + ","
+            character1 = prompt  + character1 + "," + selected_action
+            character2 = prompt  + character2 + "," + selected_action
+            character3 = prompt  + character3 + "," + selected_action
+            character1 = self.func_setting(character1,nsfw,quality)
+            character2 = self.func_setting(character2,nsfw,quality)
+            character3 = self.func_setting(character3,nsfw,quality)
+            character1 = remove_duplicate_tags((character1,))[0]
+            character2 = remove_duplicate_tags((character2,))[0]
+            character3 = remove_duplicate_tags((character3,))[0]
         else:
             character1 = ""
             character2 = ""
@@ -502,10 +508,6 @@ class CharacterSelectLoader:
         prompt = prompt  + selected_character + selected_action 
         prompt = self.func_setting(prompt,nsfw,quality)
         prompt = remove_duplicate_tags((prompt,))[0]
-        # 将prompt中的selected_character替换成character1，character2，character3
-        character1 = prompt.replace(selected_character, character1)
-        character2 = prompt.replace(selected_character, character2)
-        character3 = prompt.replace(selected_character, character3)
         return (prompt, negative_prompt, character1, character2, character3, image)
 
 NODE_CLASS_MAPPINGS5 = {"CharacterSelectLoader": CharacterSelectLoader}
