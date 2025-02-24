@@ -466,11 +466,14 @@ class CharacterSelectLoader:
             selected_character = self.hm_config_1_component[character]
         if character_zh != "None":
             selected_character = self.localizations_component[character_zh]
-        if random_character or (selected_character is None) or (selected_character == "random"):
+        if random_character or (selected_character == "random"):
             selected_character = random.choice(list(self.hm_config_1_component.values()))
-        for key, value in self.hm_config_1_component.items():
-            if value == selected_character:
-                character = key
+        if selected_character is None:
+            selected_character = ""
+        else:
+            for key, value in self.hm_config_1_component.items():
+                if value == selected_character:
+                    character = key
         # 处理动作选择逻辑
         selected_action = None
         if action != "None":
@@ -493,4 +496,4 @@ class CharacterSelectLoader:
 
 NODE_CLASS_MAPPINGS5 = {"CharacterSelectLoader": CharacterSelectLoader}
 
-NODE_DISPLAY_NAME_MAPPINGS5 = {"CharacterSelectLoader": "角色选择器"}
+NODE_DISPLAY_NAME_MAPPINGS5 = {"CharacterSelectLoader": "角色动作选择器"}
