@@ -484,9 +484,6 @@ class CharacterSelectLoader:
             selected_action = random.choice(list(self.hm_config_2_component.values())) 
         if format_tags:
             selected_character = format_str(selected_character) 
-        prompt = prompt  + selected_character + selected_action 
-        prompt = self.func_setting(prompt,nsfw,quality)
-        prompt = remove_duplicate_tags((prompt,))[0]
         result = self.hm1_setting(character, prompt)
         negative_prompt = self.settings["neg_prompt"]
         image = self.pil2tensor(result[0])
@@ -502,6 +499,13 @@ class CharacterSelectLoader:
             character1 = ""
             character2 = ""
             character3 = ""
+        prompt = prompt  + selected_character + selected_action 
+        prompt = self.func_setting(prompt,nsfw,quality)
+        prompt = remove_duplicate_tags((prompt,))[0]
+        # 将prompt中的selected_character替换成character1，character2，character3
+        character1 = prompt.replace(selected_character, character1)
+        character2 = prompt.replace(selected_character, character2)
+        character3 = prompt.replace(selected_character, character3)
         return (prompt, negative_prompt, character1, character2, character3, image)
 
 NODE_CLASS_MAPPINGS5 = {"CharacterSelectLoader": CharacterSelectLoader}
