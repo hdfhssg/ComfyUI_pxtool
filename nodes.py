@@ -463,17 +463,19 @@ class CharacterSelectLoader:
         # 处理角色选择逻辑
         selected_character = None
         if character != "None" and character != "random":
-            selected_character = self.hm_config_1_component[character]+","
+            selected_character = self.hm_config_1_component[character]
         if character_zh != "None":
-            selected_character = self.localizations_component[character_zh] + ","
+            selected_character = self.localizations_component[character_zh] 
         if random_character or (selected_character == "random"):
-            selected_character = random.choice(list(self.hm_config_1_component.values())) + ","
+            selected_character = random.choice(list(self.hm_config_1_component.values()))
         if selected_character is None:
             selected_character = ""
+            character_all = ""
         else:
             for key, value in self.hm_config_1_component.items():
                 if value == selected_character:
                     character_all = key
+            selected_character = selected_character + ","
         # 处理动作选择逻辑
         selected_action = None
         if action != "None":
