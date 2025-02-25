@@ -473,7 +473,7 @@ class CharacterSelectLoader:
         else:
             for key, value in self.hm_config_1_component.items():
                 if value == selected_character:
-                    character = key
+                    character_all = key
         # 处理动作选择逻辑
         selected_action = None
         if action != "None":
@@ -484,7 +484,7 @@ class CharacterSelectLoader:
             selected_action = random.choice(list(self.hm_config_2_component.values())) 
         if format_tags:
             selected_character = format_str(selected_character) 
-        result = self.hm1_setting(character, prompt)
+        result = self.hm1_setting(character_all, prompt)
         negative_prompt = self.settings["neg_prompt"]
         image = self.pil2tensor(result[0])
         if ai_fill:
