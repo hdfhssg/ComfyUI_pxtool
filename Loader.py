@@ -412,6 +412,8 @@ class CLIPLoaderPX:
             clip_type = comfy.sd.CLIPType.COSMOS
         elif type == "lumina2":
             clip_type = comfy.sd.CLIPType.LUMINA2
+        elif type == "wan":
+            clip_type = comfy.sd.CLIPType.WAN
         else:
             clip_type = comfy.sd.CLIPType.STABLE_DIFFUSION
 
