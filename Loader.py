@@ -375,7 +375,7 @@ class CLIPLoaderPX:
     @classmethod
     def INPUT_TYPES(s):
         return {"required": { "clip_name": (folder_paths.get_filename_list("text_encoders"), ),
-                              "type": (["stable_diffusion", "stable_cascade", "sd3", "stable_audio", "mochi", "ltxv", "pixart", "cosmos", "lumina2"], ),
+                              "type": (["stable_diffusion", "stable_cascade", "sd3", "stable_audio", "mochi", "ltxv", "pixart", "cosmos", "lumina2","wan"], ),
                               "clip_dtype": (["default", "fp8_e4m3fn", "fp8_e5m2"],),
                               },
                 "optional": {
