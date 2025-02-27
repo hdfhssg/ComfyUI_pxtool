@@ -364,7 +364,7 @@ class CharacterSelectLoader:
                 index = i
 
         #self.base64_to_pil(self.hm_config_1_img[0].get('hatsune miku'))
-        return [self.base64_to_pil(value), oldprompt, index, self.relocalizations_component[selection]]
+        return [self.base64_to_pil(value), oldprompt, index]
     def pil2tensor(self, image):
         """将PIL图像转换为ComfyUI兼容的张量格式"""
         import numpy as np
