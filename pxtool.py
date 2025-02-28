@@ -119,6 +119,24 @@ def add_Tag(chose_artists,random_weight, random_artists, artist, min_weights=1, 
         chose_artists += f"{artist},"
 
     return chose_artists
+def add_Tag_n(chose_artists,random_weight, random_artists, artist, min_weights=1, max_weights=5, 
+                            random_artist_weight=False,format_tags=True):
+    # 是否format_str
+    if format_tags:
+        artist = format_str(artist)
+    if random_artist_weight:
+        # 随机权重,值在0.5-1.5之间，正态分布，选在1附近的概率大，只要2位小数
+        num = round(np.random.normal(1.5, 0.3), 2)
+        num = max(0.8, min(2.5, num))
+        artist = f"({artist}:{num})"
+
+    if random_weight:
+        num = np.random.randint(min_weights, max_weights+1)
+        artist = "(" * num + artist + ")" * num
+    if random_artists:
+        chose_artists += f"{artist},"
+
+    return chose_artists
 
 def add_position(prompt,chose_artists, position="最后面"):
 
@@ -726,7 +744,7 @@ class NegativeTag:
         np.random.SeedSequence(tag_weight_seed)
         if multiple_tag != "None":
             prompt = prompt.replace("solo,", "")
-            multiple_tag = add_Tag("",random_weight, random_tag, multiple_tag, min_weights, max_weights,random_Tag_weight,format_tags)
+            multiple_tag = add_Tag_n("",random_weight, random_tag, multiple_tag, min_weights, max_weights,random_Tag_weight,format_tags)
             prompt = multiple_tag + "," + prompt
         if boy_tag != "None":
             prompt = prompt.replace("1boy,", "")
@@ -739,7 +757,7 @@ class NegativeTag:
         for _ in range(random.randint(min_tag, max_tag)):
             while (artist := random.choice(list(artists_dict))) in chose_artists:
                 pass
-            chose_artists = add_Tag(chose_artists,random_weight, random_tag, artist, min_weights, max_weights,random_Tag_weight,format_tags)
+            chose_artists = add_Tag_n(chose_artists,random_weight, random_tag, artist, min_weights, max_weights,random_Tag_weight,format_tags)
         if old:
             chose_artists += "old,"
         tags = (f"{str(prompt)}{str(chose_artists)}"),str(chose_artists)
